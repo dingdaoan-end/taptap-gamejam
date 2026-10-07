@@ -21,5 +21,8 @@
 .DS_Store
 Thumbs.db
 graybox-import.log
+/Tests/**/bin/
+!/Tests/PianoDefense.CoreTests/PianoDefense.CoreTests.csproj
+/Artifacts/
 
 # Keep Unity .meta files: they hold asset identities and references.
