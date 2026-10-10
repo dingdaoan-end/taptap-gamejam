@@ -4,7 +4,7 @@ namespace TapTapGameJam.PianoDefense
 {
     public static class PianoSynthesis
     {
-        static readonly int[] Semitones = { 0, 2, 4, 5, 7, 9, 11, 12 };
+        static readonly int[] Semitones = { 0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 3, -2, 17, 19, 21, 23, 24, 26, 28 };
         public static double Frequency(int pitch) { return 261.625565 * Math.Pow(2, Semitones[pitch] / 12.0); }
         public static float[] Render(int pitch, int sampleRate)
         {

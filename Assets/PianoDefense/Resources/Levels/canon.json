@@ -1,0 +1,711 @@
+{
+  "id": "canon",
+  "title": "卡农简化版",
+  "summary": "C G Am Em F C F G",
+  "detail": "两轮主题，长音按拍重奏\n每组两拍，结尾 C 四拍",
+  "totalBeats": 36,
+  "initialCoins": 32,
+  "towers": [
+    {
+      "x": 9,
+      "y": 0,
+      "lane": 1
+    },
+    {
+      "x": 9,
+      "y": 2,
+      "lane": 3
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "lane": 5
+    },
+    {
+      "x": 9,
+      "y": 6,
+      "lane": 7
+    }
+  ],
+  "chords": [
+    {
+      "beat": 0,
+      "name": "C"
+    },
+    {
+      "beat": 2,
+      "name": "G"
+    },
+    {
+      "beat": 4,
+      "name": "Am"
+    },
+    {
+      "beat": 6,
+      "name": "Em"
+    },
+    {
+      "beat": 8,
+      "name": "F"
+    },
+    {
+      "beat": 10,
+      "name": "C"
+    },
+    {
+      "beat": 12,
+      "name": "F"
+    },
+    {
+      "beat": 14,
+      "name": "G"
+    },
+    {
+      "beat": 16,
+      "name": "C"
+    },
+    {
+      "beat": 18,
+      "name": "G"
+    },
+    {
+      "beat": 20,
+      "name": "Am"
+    },
+    {
+      "beat": 22,
+      "name": "Em"
+    },
+    {
+      "beat": 24,
+      "name": "F"
+    },
+    {
+      "beat": 26,
+      "name": "C"
+    },
+    {
+      "beat": 28,
+      "name": "F"
+    },
+    {
+      "beat": 30,
+      "name": "G"
+    },
+    {
+      "beat": 32,
+      "name": "C"
+    }
+  ],
+  "spawns": [
+    {
+      "beat": 0,
+      "lane": 1,
+      "pitch": "E6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 0,
+      "lane": 3,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 0,
+      "lane": 5,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 0,
+      "lane": 7,
+      "pitch": "C4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 1,
+      "lane": 1,
+      "pitch": "E6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 2,
+      "lane": 1,
+      "pitch": "D6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 2,
+      "lane": 3,
+      "pitch": "B4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 2,
+      "lane": 5,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 2,
+      "lane": 7,
+      "pitch": "D4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 3,
+      "lane": 1,
+      "pitch": "D6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 4,
+      "lane": 1,
+      "pitch": "C6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 4,
+      "lane": 3,
+      "pitch": "E5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 4,
+      "lane": 5,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 4,
+      "lane": 7,
+      "pitch": "A4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 5,
+      "lane": 1,
+      "pitch": "C6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 6,
+      "lane": 1,
+      "pitch": "B5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 6,
+      "lane": 3,
+      "pitch": "B4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 6,
+      "lane": 5,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 6,
+      "lane": 7,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 7,
+      "lane": 1,
+      "pitch": "B5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 8,
+      "lane": 1,
+      "pitch": "A5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 8,
+      "lane": 3,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 8,
+      "lane": 5,
+      "pitch": "A4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 8,
+      "lane": 7,
+      "pitch": "F4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 9,
+      "lane": 1,
+      "pitch": "A5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 10,
+      "lane": 1,
+      "pitch": "G5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 10,
+      "lane": 3,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 10,
+      "lane": 5,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 10,
+      "lane": 7,
+      "pitch": "C4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 11,
+      "lane": 1,
+      "pitch": "G5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 12,
+      "lane": 1,
+      "pitch": "A5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 12,
+      "lane": 3,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 12,
+      "lane": 5,
+      "pitch": "A4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 12,
+      "lane": 7,
+      "pitch": "F4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 13,
+      "lane": 1,
+      "pitch": "A5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 14,
+      "lane": 1,
+      "pitch": "B5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 14,
+      "lane": 3,
+      "pitch": "B4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 14,
+      "lane": 5,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 14,
+      "lane": 7,
+      "pitch": "D4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 15,
+      "lane": 1,
+      "pitch": "B5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 16,
+      "lane": 1,
+      "pitch": "C6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 16,
+      "lane": 3,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 16,
+      "lane": 5,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 16,
+      "lane": 7,
+      "pitch": "C4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 17,
+      "lane": 1,
+      "pitch": "C6",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 18,
+      "lane": 1,
+      "pitch": "B5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 18,
+      "lane": 3,
+      "pitch": "B4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 18,
+      "lane": 5,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 18,
+      "lane": 7,
+      "pitch": "D4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 19,
+      "lane": 1,
+      "pitch": "B5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 20,
+      "lane": 1,
+      "pitch": "A5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 20,
+      "lane": 3,
+      "pitch": "E5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 20,
+      "lane": 5,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 20,
+      "lane": 7,
+      "pitch": "A4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 21,
+      "lane": 1,
+      "pitch": "A5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 22,
+      "lane": 1,
+      "pitch": "G5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 22,
+      "lane": 3,
+      "pitch": "B4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 22,
+      "lane": 5,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 22,
+      "lane": 7,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 23,
+      "lane": 1,
+      "pitch": "G5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 24,
+      "lane": 1,
+      "pitch": "F5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 24,
+      "lane": 3,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 24,
+      "lane": 5,
+      "pitch": "A4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 24,
+      "lane": 7,
+      "pitch": "F4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 25,
+      "lane": 1,
+      "pitch": "F5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 26,
+      "lane": 1,
+      "pitch": "E5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 26,
+      "lane": 3,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 26,
+      "lane": 5,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 26,
+      "lane": 7,
+      "pitch": "C4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 27,
+      "lane": 1,
+      "pitch": "E5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 28,
+      "lane": 1,
+      "pitch": "F5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 28,
+      "lane": 3,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 28,
+      "lane": 5,
+      "pitch": "A4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 28,
+      "lane": 7,
+      "pitch": "F4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 29,
+      "lane": 1,
+      "pitch": "F5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 30,
+      "lane": 1,
+      "pitch": "D5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 30,
+      "lane": 3,
+      "pitch": "B4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 30,
+      "lane": 5,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 30,
+      "lane": 7,
+      "pitch": "D4",
+      "speed": 1,
+      "hits": 2
+    },
+    {
+      "beat": 31,
+      "lane": 1,
+      "pitch": "D5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 32,
+      "lane": 1,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 32,
+      "lane": 3,
+      "pitch": "G4",
+      "speed": 1,
+      "hits": 4
+    },
+    {
+      "beat": 32,
+      "lane": 5,
+      "pitch": "E4",
+      "speed": 1,
+      "hits": 4
+    },
+    {
+      "beat": 32,
+      "lane": 7,
+      "pitch": "C4",
+      "speed": 1,
+      "hits": 4
+    },
+    {
+      "beat": 33,
+      "lane": 1,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 34,
+      "lane": 1,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 1
+    },
+    {
+      "beat": 35,
+      "lane": 1,
+      "pitch": "C5",
+      "speed": 1,
+      "hits": 1
+    }
+  ]
+}

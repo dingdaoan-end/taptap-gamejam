@@ -7,6 +7,8 @@ namespace TapTapGameJam.PianoDefense
     [RequireComponent(typeof(PianoAudio))]
     public sealed class PianoDefenseGame : MonoBehaviour
     {
+        public LevelDefinition Level { get; private set; }
+        public string SelectedLevelId { get; private set; } = "canon";
         public DefenseSimulation Simulation { get; private set; }
         public DefenseSimulation Display { get; private set; }
         public PianoAudio Sound { get; private set; }
@@ -19,7 +21,7 @@ namespace TapTapGameJam.PianoDefense
         public bool BuildMode { get; set; } = true;
         public string Notice { get; private set; }
         public float NoticeUntil { get; private set; }
-        public readonly float[] KeyFlash = new float[8];
+        public readonly float[] KeyFlash = new float[DefenseSimulation.PitchNames.Length];
         public readonly List<VisualShot> Shots = new List<VisualShot>();
         public double BeatTime { get { return clock.LastTime; } }
         readonly BeatClock clock = new BeatClock();
@@ -40,19 +42,31 @@ namespace TapTapGameJam.PianoDefense
 
         public void NewGame(bool example)
         {
+            var asset = Resources.Load<TextAsset>("Levels/" + SelectedLevelId);
+            if (asset == null) throw new InvalidOperationException("Missing level: " + SelectedLevelId);
+            var definition = JsonUtility.FromJson<LevelDefinition>(asset.text);
+            var simulation = new DefenseSimulation(definition);
             clock.Stop(); Sound.StopAll(); pending = null;
-            Simulation = new DefenseSimulation(); if (example) Simulation.ApplyExampleLayout();
+            Level = definition;
+            Simulation = simulation; if (example) Simulation.ApplyExampleLayout();
             Display = Simulation.Snapshot(); queuedInput.Clear();
             Started = Finished = Replaying = false; AudibleBeat = -1; SelectedTowerId = -1; BuildMode = true;
             Shots.Clear(); Array.Clear(KeyFlash, 0, KeyFlash.Length);
-            ShowNotice(example ? "已放好 3 座示例琴塔。按空格，听见第一段旋律。" : "点击空地放置琴塔，每座 8 币；准备好后开始守夜。");
+            ShowNotice(example ? "已载入 " + Level.title + "。第一行主旋律，下方三行伴奏。" : "点击空地放置琴塔，每座 8 币；准备好后开始守夜。");
+        }
+
+        public void SelectLevel(string id)
+        {
+            if (id != "canon" && id != "progression-4536251") return;
+            SelectedLevelId = id;
+            NewGame(true);
         }
 
         public void StartBattle()
         {
             if (Started || Finished) return;
             Started = true; clock.Start(AudioSettings.dspTime);
-            ShowNotice("敌人从右向左前进。击杀的音高，会成为你的旋律。");
+            ShowNotice("敌人从右向左前进。第一行每拍一个旋律音，伴奏每组两击，结尾 C 四击。");
         }
 
         public void TogglePause()
@@ -136,7 +150,7 @@ namespace TapTapGameJam.PianoDefense
         void ApplyBuild(int x, int y)
         {
             if (Finished) return;
-            if (!DefenseSimulation.IsBuildCell(x, y)) { ShowNotice("琴塔要建在深色空地上，三条亮色通道留给音符敌人。"); return; }
+            if (!DefenseSimulation.IsBuildCell(x, y)) { ShowNotice("琴塔要建在深色空地上，四条亮色通道留给音符敌人。"); return; }
             if (!Simulation.TryBuild(x, y)) { ShowNotice(Simulation.Coins < 8 ? "需要 8 币。击杀敌人可获得金币。" : "同时最多放置 8 座琴塔。"); return; }
             SelectedTowerId = Simulation.TowerAt(x, y).Id;
             ShowNotice("琴塔已就位。可在右侧选择只演奏哪些音高。");
@@ -168,7 +182,7 @@ namespace TapTapGameJam.PianoDefense
 
         public void PreviewKey(int pitch)
         {
-            if (Started && !Finished) { ShowNotice("守夜中，钢琴由敌人的击杀触发。"); return; }
+            if (Started && !Finished) { ShowNotice("守夜中，钢琴由命中敌人触发。"); return; }
             if (Replaying) return;
             Sound.Preview(pitch); KeyFlash[pitch] = Time.unscaledTime;
         }

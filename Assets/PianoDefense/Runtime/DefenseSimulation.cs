@@ -7,25 +7,25 @@ namespace TapTapGameJam.PianoDefense
 
     public sealed class NoteEvent
     {
-        public readonly int Beat, Pitch, TowerId;
-        public NoteEvent(int beat, int pitch, int towerId) { Beat = beat; Pitch = pitch; TowerId = towerId; }
+        public readonly int Beat, Pitch, TowerId, Lane;
+        public NoteEvent(int beat, int pitch, int towerId, int lane = -1) { Beat = beat; Pitch = pitch; TowerId = towerId; Lane = lane; }
     }
 
     public sealed class SpawnEvent
     {
-        public readonly int Beat, Lane, Pitch, Speed;
+        public readonly int Beat, Lane, Pitch, Speed, Hits;
         public SpawnEvent(int beat, int lane, int pitch) : this(beat, lane, pitch, 1) { }
-        public SpawnEvent(int beat, int lane, int pitch, int speed) { Beat = beat; Lane = lane; Pitch = pitch; Speed = speed; }
+        public SpawnEvent(int beat, int lane, int pitch, int speed, int hits = 1) { Beat = beat; Lane = lane; Pitch = pitch; Speed = speed; Hits = hits; }
     }
 
     public sealed class EnemyState
     {
-        public int Id, X, PreviousX, Lane, Pitch, Speed = 1;
+        public int Id, X, PreviousX, Lane, Pitch, Speed = 1, HitsRemaining = 1, LastHitBeat = -1;
     }
 
     public sealed class TowerState
     {
-        public int Id, X, Y, Pitch;
+        public int Id, X, Y, Pitch, AssignedLane = -1;
         public TargetMode Mode;
     }
 
@@ -47,12 +47,14 @@ namespace TapTapGameJam.PianoDefense
 
     public sealed class DefenseSimulation
     {
-        public const int Width = 12, Height = 7, MaxHp = 10, TowerCost = 8, Range = 3, MaxTowers = 8;
-        public const double Bpm = 110, SecondsPerBeat = 60.0 / Bpm;
+        public const int Width = 12, Height = 9, MaxHp = 10, TowerCost = 8, MaxTowers = 8;
+        public const double Bpm = 55, SecondsPerBeat = 60.0 / Bpm;
         public static readonly int[] TargetMelody = { 0, 2, 4, 7 };
-        public static readonly string[] NoteNames = { "do", "re", "mi", "fa", "sol", "la", "si", "do′" };
-        public static readonly string[] PitchNames = { "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5" };
+        public static readonly string[] NoteNames = { "do", "re", "mi", "fa", "sol", "la", "si", "do′", "re′", "mi′", "mi♭", "si♭₃", "fa′", "sol′", "la′", "si′", "do″", "re″", "mi″" };
+        public static readonly string[] PitchNames = { "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5", "Eb4", "Bb3", "F5", "G5", "A5", "B5", "C6", "D6", "E6" };
 
+        public bool ChordArrangement { get; private set; }
+        LevelDefinition level;
         readonly List<TowerState> towers = new List<TowerState>();
         readonly List<EnemyState> enemies = new List<EnemyState>();
         readonly List<NoteEvent> notes = new List<NoteEvent>();
@@ -79,9 +81,10 @@ namespace TapTapGameJam.PianoDefense
         public IReadOnlyList<SpawnEvent> Spawns { get { return spawns; } }
         public double KillRate { get { return TotalEnemies == 0 ? 1 : (double)Killed / TotalEnemies; } }
         public int Score { get { return (int)Math.Round(600 * KillRate + 300 * Hp / MaxHp + 900 * (phrases == 0 ? 0 : completionSum / phrases) + 60 * Harmonies); } }
-        public int Stars { get { return (KillRate >= 0.9 ? 1 : 0) + (Hp >= 8 ? 1 : 0) + (CompleteMelodies >= 2 ? 1 : 0); } }
+        public int Stars { get { return (KillRate >= 0.9 ? 1 : 0) + (Hp >= 8 ? 1 : 0) + ((ChordArrangement ? Harmonies >= TotalBeats : CompleteMelodies >= 2) ? 1 : 0); } }
 
-        public DefenseSimulation() : this(CreateWaves(), 112) { }
+        public DefenseSimulation(LevelDefinition definition) : this(definition.CreateSpawns(), definition.totalBeats)
+        { level = definition; ChordArrangement = true; Coins = definition.initialCoins; }
 
         public DefenseSimulation(IEnumerable<SpawnEvent> wave, int totalBeats)
         {
@@ -94,27 +97,28 @@ namespace TapTapGameJam.PianoDefense
                 spawns[j + 1] = item;
             }
             foreach (var spawn in spawns)
-                if (spawn.Beat < 0 || !IsLane(spawn.Lane) || spawn.Pitch < 0 || spawn.Pitch > 7 || spawn.Speed < 1 || spawn.Speed > 2)
+                if (spawn.Beat < 0 || !IsLane(spawn.Lane) || spawn.Pitch < 0 || spawn.Pitch >= PitchNames.Length || spawn.Speed < 1 || spawn.Speed > 2 || spawn.Hits < 1)
                     throw new ArgumentException("Invalid wave entry.");
             TotalBeats = Math.Max(1, totalBeats);
         }
 
-        public static bool IsLane(int y) { return y == 1 || y == 3 || y == 5; }
+        public static bool IsLane(int y) { return y == 1 || y == 3 || y == 5 || y == 7; }
         public DefenseSimulation Snapshot()
         {
             var copy = new DefenseSimulation(spawns, TotalBeats)
             {
-                Beat = Beat, Coins = Coins, Hp = Hp, Killed = Killed, Leaked = Leaked,
+                level = level, ChordArrangement = ChordArrangement, Beat = Beat, Coins = Coins, Hp = Hp, Killed = Killed, Leaked = Leaked,
                 CompleteMelodies = CompleteMelodies, Harmonies = Harmonies, LastPhraseProgress = LastPhraseProgress,
                 Finished = Finished, nextSpawn = nextSpawn, nextEnemyId = nextEnemyId,
                 nextTowerId = nextTowerId, phrases = phrases, completionSum = completionSum
             };
-            foreach (var t in towers) copy.towers.Add(new TowerState { Id = t.Id, X = t.X, Y = t.Y, Pitch = t.Pitch, Mode = t.Mode });
-            foreach (var e in enemies) copy.enemies.Add(new EnemyState { Id = e.Id, X = e.X, PreviousX = e.PreviousX, Lane = e.Lane, Pitch = e.Pitch, Speed = e.Speed });
+            foreach (var t in towers) copy.towers.Add(new TowerState { Id = t.Id, X = t.X, Y = t.Y, Pitch = t.Pitch, Mode = t.Mode, AssignedLane = t.AssignedLane });
+            foreach (var e in enemies) copy.enemies.Add(new EnemyState { Id = e.Id, X = e.X, PreviousX = e.PreviousX, Lane = e.Lane, Pitch = e.Pitch, Speed = e.Speed, HitsRemaining = e.HitsRemaining, LastHitBeat = e.LastHitBeat });
             copy.notes.AddRange(notes); copy.phrase.AddRange(phrase);
             return copy;
         }
         public static bool IsBuildCell(int x, int y) { return x > 0 && x < Width - 1 && y >= 0 && y < Height && !IsLane(y); }
+        public static bool CanAttackCell(TowerState tower, int x, int y) { return Math.Abs(x - tower.X) <= 1 && y == tower.Y + 1; }
         public TowerState TowerAt(int x, int y) { return towers.Find(t => t.X == x && t.Y == y); }
         public TowerState TowerById(int id) { return towers.Find(t => t.Id == id); }
 
@@ -136,20 +140,23 @@ namespace TapTapGameJam.PianoDefense
         public void SetFilter(int id, TargetMode mode, int pitch)
         {
             var tower = TowerById(id);
-            if (Finished || tower == null || pitch < 0 || pitch > 7 || mode < TargetMode.All || mode > TargetMode.Skip) return;
+            if (Finished || tower == null || pitch < 0 || pitch >= PitchNames.Length || mode < TargetMode.All || mode > TargetMode.Skip) return;
             tower.Mode = mode; tower.Pitch = pitch;
         }
 
         public void ClearLayout()
         {
             if (Beat >= 0) return;
-            towers.Clear(); Coins = 24; nextTowerId = 0;
+            towers.Clear(); Coins = level != null ? level.initialCoins : 24; nextTowerId = 0;
         }
 
         public void ApplyExampleLayout()
         {
             if (Beat >= 0) return;
-            ClearLayout(); TryBuild(8, 2); TryBuild(5, 4); TryBuild(2, 2);
+            ClearLayout();
+            if (level == null) return;
+            foreach (var t in level.towers)
+                if (TryBuild(t.x, t.y)) towers[towers.Count - 1].AssignedLane = t.lane;
         }
 
         public BeatResult Step()
@@ -160,7 +167,7 @@ namespace TapTapGameJam.PianoDefense
             while (nextSpawn < spawns.Count && spawns[nextSpawn].Beat <= Beat)
             {
                 var spawn = spawns[nextSpawn++];
-                enemies.Add(new EnemyState { Id = ++nextEnemyId, X = Width, PreviousX = Width, Lane = spawn.Lane, Pitch = spawn.Pitch, Speed = spawn.Speed });
+                enemies.Add(new EnemyState { Id = ++nextEnemyId, X = Width, PreviousX = Width, Lane = spawn.Lane, Pitch = spawn.Pitch, Speed = spawn.Speed, HitsRemaining = spawn.Hits });
             }
             foreach (var enemy in enemies)
             {
@@ -176,19 +183,21 @@ namespace TapTapGameJam.PianoDefense
                 EnemyState target = null;
                 foreach (var enemy in enemies)
                 {
-                    if (Math.Abs(enemy.X - tower.X) + Math.Abs(enemy.Lane - tower.Y) > Range) continue;
+                    if (enemy.LastHitBeat == Beat || (tower.AssignedLane >= 0 && enemy.Lane != tower.AssignedLane)) continue;
+                    if (!CanAttackCell(tower, enemy.X, enemy.Lane)) continue;
                     if (tower.Mode == TargetMode.Solo && enemy.Pitch != tower.Pitch) continue;
                     if (tower.Mode == TargetMode.Skip && enemy.Pitch == tower.Pitch) continue;
                     if (target == null || enemy.X < target.X || (enemy.X == target.X && enemy.Id < target.Id)) target = enemy;
                 }
                 if (target == null) continue;
-                enemies.Remove(target); Killed++; Coins++;
-                var note = new NoteEvent(Beat, target.Pitch, tower.Id);
+                target.LastHitBeat = Beat; target.HitsRemaining--;
+                if (target.HitsRemaining == 0) { enemies.Remove(target); Killed++; Coins++; }
+                var note = new NoteEvent(Beat, target.Pitch, tower.Id, target.Lane);
                 result.Notes.Add(note); notes.Add(note); phrase.Add(note);
                 result.Shots.Add(new ShotEvent { FromX = tower.X, FromY = tower.Y, ToX = target.X, ToY = target.Lane, Pitch = target.Pitch });
             }
             if (result.Notes.Count >= 2) Harmonies++;
-            if ((Beat + 1) % 16 == 0)
+            if (!ChordArrangement && (Beat + 1) % 16 == 0)
             {
                 result.PhraseProgress = MelodyProgress;
                 LastPhraseProgress = result.PhraseProgress;
@@ -213,22 +222,5 @@ namespace TapTapGameJam.PianoDefense
             return result;
         }
 
-        public static List<SpawnEvent> CreateWaves()
-        {
-            var wave = new List<SpawnEvent>();
-            for (int i = 0; i < 8; i++) wave.Add(new SpawnEvent(i * 2, 3, TargetMelody[i % 4]));
-            int[] second = { 0, 2, 1, 4, 7, 3, 0, 2, 4, 7, 1, 2 };
-            for (int i = 0; i < second.Length; i++) wave.Add(new SpawnEvent(40 + i * 2, i % 2 == 0 ? 1 : 5, second[i]));
-            int[] third = { 0, 2, 4, 7, 1, 0, 2, 4, 7, 3, 0, 2, 4, 7, 2, 0 };
-            for (int i = 0; i < third.Length; i++) wave.Add(new SpawnEvent(80 + i * 2, 1 + (i % 3) * 2, third[i]));
-            wave.Add(new SpawnEvent(90, 1, 4)); wave.Add(new SpawnEvent(94, 3, 2)); wave.Add(new SpawnEvent(98, 5, 7));
-            // 装饰音怪（设计文档 §4.1）：速度 2 格/拍，填充音高，赶在队头抢拍打乱击杀顺序。
-            wave.Add(new SpawnEvent(44, 1, 5, 2));
-            wave.Add(new SpawnEvent(52, 5, 1, 2));
-            wave.Add(new SpawnEvent(84, 3, 3, 2));
-            wave.Add(new SpawnEvent(92, 1, 5, 2));
-            wave.Add(new SpawnEvent(100, 5, 1, 2));
-            return wave;
-        }
     }
 }

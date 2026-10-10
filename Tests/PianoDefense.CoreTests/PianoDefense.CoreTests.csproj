@@ -6,6 +6,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="../../Assets/PianoDefense/Runtime/LevelDefinition.cs" />
+    <Content Include="../../Assets/PianoDefense/Resources/Levels/*.json" Link="Levels/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../Assets/PianoDefense/Runtime/DefenseSimulation.cs" />
     <Compile Include="../../Assets/PianoDefense/Runtime/MelodyMatcher.cs" />
     <Compile Include="../../Assets/PianoDefense/Runtime/BeatClock.cs" />

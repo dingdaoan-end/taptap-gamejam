@@ -27,7 +27,7 @@ namespace TapTapGameJam.PianoDefense.Editor
                 var game = root.AddComponent<PianoDefenseGame>();
                 if (game.Simulation == null) game.SendMessage("Awake");
                 int a = game.Simulation.Towers[0].Id, b = game.Simulation.Towers[1].Id;
-                game.SelectOrBuild(8, 2); Pending(game); game.SelectOrBuild(5, 4);
+                game.SelectOrBuild(9, 0); Pending(game); game.SelectOrBuild(9, 2);
                 Require(game.SelectedTowerId == b, "Selecting a visible tower must not wait for the pending beat.");
                 game.SellSelected(); Flush(game);
                 Require(game.Simulation.TowerById(a) != null && game.Simulation.TowerById(b) == null, "Selling removed the previously selected tower.");
@@ -43,7 +43,24 @@ namespace TapTapGameJam.PianoDefense.Editor
                 Require(game.Simulation.TowerById(a).Mode == TargetMode.Solo && game.Simulation.TowerById(a).Pitch == 2,
                     "Queued pitch change overwrote the preceding mode change.");
                 Debug.Log("PIANO_CHECK_PASS mode and pitch commands compose in order");
-                Debug.Log("PIANO_CONTROLLER_CHECKS_PASS count=3");
+                game.NewGame(true); Pending(game); game.BuildMode = true; game.SelectOrBuild(5, 4);
+                game.SelectLevel("progression-4536251");
+                Require(game.Level.id == "progression-4536251" && game.Simulation.TotalEnemies == 37 &&
+                    game.Simulation.TotalBeats == 16 && game.Simulation.Beat == -1 && game.Simulation.Notes.Count == 0,
+                    "Switching failed to load the saved 4536251 level.");
+                Flush(game);
+                Require(game.Simulation.Towers.Count == 4 && game.Simulation.TowerAt(5, 4) == null,
+                    "Old queued input changed the new level.");
+                game.StartBattle(); game.TogglePause(); game.SelectLevel("canon");
+                Require(!game.Started && !game.Paused && !game.Finished && !game.Replaying &&
+                    game.Simulation.TotalEnemies == 87 && game.Simulation.TotalBeats == 36,
+                    "Paused state leaked across level switch.");
+                game.NewGame(false);
+                Require(game.Level.id == "canon" && game.Simulation.Towers.Count == 0, "Clear layout changed level.");
+                game.NewGame(true);
+                Require(game.Level.id == "canon" && game.Simulation.Towers.Count == 4, "Restore changed level.");
+                Debug.Log("PIANO_CHECK_PASS saved examples switch and clear pending state");
+                Debug.Log("PIANO_CONTROLLER_CHECKS_PASS count=4");
             }
             finally { UnityEngine.Object.DestroyImmediate(root); }
         }

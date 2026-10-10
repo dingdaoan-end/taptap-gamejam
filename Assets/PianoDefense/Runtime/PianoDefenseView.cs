@@ -8,9 +8,10 @@ namespace TapTapGameJam.PianoDefense
     {
         static readonly Color Background = Hex(0x101722), Panel = Hex(0x192331), Muted = Hex(0x8f9dab);
         static readonly Color Ink = Hex(0xedf1f1), Mint = Hex(0x68ddc7), Gold = Hex(0xf0c47b);
-        static readonly Color[] PitchColors = { Hex(0xed8b91), Hex(0xeeac73), Hex(0xe9cf7c), Hex(0x8dce9b), Hex(0x71c9dd), Hex(0x98a6ee), Hex(0xc59ce6), Hex(0xf1a9cc) };
+        static readonly Color[] PitchColors = { Hex(0xed8b91), Hex(0xeeac73), Hex(0xe9cf7c), Hex(0x8dce9b), Hex(0x71c9dd), Hex(0x98a6ee), Hex(0xc59ce6), Hex(0xf1a9cc), Hex(0xeeac73), Hex(0xe9cf7c), Hex(0xc59ce6), Hex(0x98a6ee), Hex(0x8dce9b), Hex(0x71c9dd), Hex(0x98a6ee), Hex(0xc59ce6), Hex(0xf1a9cc), Hex(0xeeac73), Hex(0xe9cf7c) };
+        static readonly int[] KeyboardOrder = { 11, 0, 1, 10, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 18 };
         static readonly Rect Board = new Rect(296, 188, 840, 490);
-        const float Cell = 70;
+        const float Cell = 70, RowHeight = 490f / DefenseSimulation.Height;
         PianoDefenseGame game;
         Texture2D pixel, circle;
         Font font;
@@ -82,7 +83,7 @@ namespace TapTapGameJam.PianoDefense
             Text(Sim.Killed + " / " + Sim.TotalEnemies, new Rect(954, 52, 145, 36), 26, Ink, true);
             if (Btn(new Rect(1160, 27, 122, 36), game.Sound.Muted ? "声音：关" : "声音：开", false)) game.Sound.SetMuted(!game.Sound.Muted);
             if (Btn(new Rect(1292, 27, 124, 36), game.Sound.Metronome ? "节拍器：开" : "节拍器：关", false)) game.Sound.Metronome = !game.Sound.Metronome;
-            Text("110 BPM  ·  4/4  ·  钢琴原型", new Rect(1160, 74, 256, 22), 13, Muted);
+            Text(DefenseSimulation.Bpm + " BPM  ·  4/4  ·  钢琴原型", new Rect(1160, 74, 256, 22), 13, Muted);
             Fill(new Rect(24, 108, 1392, 1), Hex(0x2b3745));
         }
 
@@ -92,7 +93,7 @@ namespace TapTapGameJam.PianoDefense
             Text("01  /  布阵与守夜", new Rect(44, 148, 215, 22), 13, Mint, true);
             string title = game.Replaying ? "聆听你的乐章" : game.Finished ? "乐章落幕" : !game.Started ? "让防御成为旋律" : game.Paused ? "暂歇片刻" : "守夜进行中";
             Text(title, new Rect(44, 186, 214, 36), 23, Ink, true);
-            Paragraph(!game.Started ? "示例琴塔已就位。你可以直接开演，也可以清空后自由布阵。" : "敌人按拍前进，» 装饰音每拍两格、会抢拍。琴塔击杀时，奏响敌人身上的音符。", new Rect(44, 236, 207, 74), 15, Muted);
+            Paragraph(!game.Started ? "示例琴塔已就位。你可以直接开演，也可以清空后自由布阵。" : game.Level.detail, new Rect(44, 236, 207, 74), 15, Muted);
             if (game.Replaying)
             {
                 if (Btn(new Rect(44, 326, 208, 46), "停止回放", true)) game.ToggleReplay();
@@ -103,7 +104,7 @@ namespace TapTapGameJam.PianoDefense
                 { if (!game.Started) game.StartBattle(); else game.TogglePause(); }
             }
             if (Btn(new Rect(44, 386, 208, 42), game.BuildMode ? "＋ 建造中 · 8币  [B]" : "建造钢琴塔  [B]", game.BuildMode, !game.Finished && !game.Paused)) game.BuildMode = !game.BuildMode;
-            Text("琴塔 " + Sim.Towers.Count + "/8     每拍一击 · 射程3格", new Rect(44, 442, 220, 23), 13, Muted);
+            Text("琴塔 " + Sim.Towers.Count + "/8     每拍一击 · 下方横排3格", new Rect(44, 442, 220, 23), 13, Muted);
             if (!game.Started)
             {
                 if (Btn(new Rect(44, 488, 208, 36), "清空，自己布阵", false)) game.NewGame(false);
@@ -123,18 +124,19 @@ namespace TapTapGameJam.PianoDefense
                 }
                 if (found == 0) Text("本夜敌人已全部登场", new Rect(44, 526, 208, 30), 14, Ink);
             }
-            Text("音色：合成钢琴 · 占位版", new Rect(44, 627, 215, 24), 12, Muted);
+            if (Btn(new Rect(44, 584, 208, 32), "关卡：4536251", game.SelectedLevelId == "progression-4536251")) game.SelectLevel("progression-4536251");
+            if (Btn(new Rect(44, 625, 208, 32), "关卡：卡农简化版", game.SelectedLevelId == "canon")) game.SelectLevel("canon");
             Card(new Rect(24, 700, 248, 176));
             Text("怎么玩", new Rect(44, 718, 205, 25), 17, Ink, true);
-            Paragraph("① 点击深色空地放塔\n② 点击琴塔，筛选音高\n③ 击杀成曲，守住据点\n④ » 装饰音每拍两格，可用筛选放行", new Rect(44, 752, 210, 105), 14, Muted);
+            Paragraph("① 点击深色空地放塔\n② 点击琴塔，筛选音高\n③ 每次命中奏响和弦音\n④ 示例塔各负责一条声部", new Rect(44, 752, 210, 105), 14, Muted);
         }
 
         void BoardView()
         {
             int beat = Math.Max(0, game.AudibleBeat);
-            string wave = !game.Started ? "准备 / 可以自由调整布置" : game.Replaying ? "回放 / 原始击杀节拍" : beat < 32 ? "第 1 波 / 听见顺序" : beat < 40 ? "间奏 / 重新布阵" : beat < 72 ? "第 2 波 / 填充音·装饰音抢拍" : beat < 80 ? "间奏 / 为终段做准备" : "第 3 波 / 多路合奏·装饰音突进";
+            string wave = !game.Started ? game.Level.title + " / 主旋律 + 伴奏" : (game.Replaying ? "回放 / " : "和弦 / ") + game.Level.ChordAt(beat);
             Text(wave, new Rect(296, 125, 605, 25), 17, Ink, true);
-            Text((game.Started ? "拍 " + (game.AudibleBeat + 1) + " / 112" : "一夜约 60 秒") + "   ← 来敌", new Rect(908, 125, 228, 25), 14, Muted, false, TextAnchor.MiddleRight);
+            Text((game.Started ? "拍 " + (game.AudibleBeat + 1) + " / " + Sim.TotalBeats : Sim.TotalBeats + " 拍 · 约 " + Math.Round(Sim.TotalBeats * DefenseSimulation.SecondsPerBeat) + " 秒") + "   ← 来敌", new Rect(908, 125, 228, 25), 14, Muted, false, TextAnchor.MiddleRight);
             for (int i = 0; i < 16; i++)
             {
                 Color c = i % 4 == 0 ? Hex(0x425267) : Hex(0x293747);
@@ -142,15 +144,15 @@ namespace TapTapGameJam.PianoDefense
                 Fill(new Rect(Board.x + i * 52.5f, 162, 46.5f, 8), c);
             }
             var selected = Sim.TowerById(game.SelectedTowerId);
-            for (int y = 0; y < 7; y++) for (int x = 0; x < 12; x++)
+            for (int y = 0; y < DefenseSimulation.Height; y++) for (int x = 0; x < 12; x++)
             {
                 Rect cell = CellRect(x, y);
                 Color c = DefenseSimulation.IsLane(y) ? Hex(0x293646) : Hex(0x18222f);
                 if (x == 0) c = Hex(0x21483f);
                 if (x == 11) c = Hex(0x413139);
-                Fill(new Rect(cell.x + 1, cell.y + 1, Cell - 2, Cell - 2), c);
-                if (selected != null && Math.Abs(selected.X - x) + Math.Abs(selected.Y - y) <= 3)
-                    Fill(new Rect(cell.x + 2, cell.y + 2, Cell - 4, Cell - 4), Alpha(Mint, 0.10f));
+                Fill(new Rect(cell.x + 1, cell.y + 1, Cell - 2, RowHeight - 2), c);
+                if (selected != null && DefenseSimulation.CanAttackCell(selected, x, y))
+                    Fill(new Rect(cell.x + 2, cell.y + 2, Cell - 4, RowHeight - 4), Alpha(Mint, 0.10f));
                 if (DefenseSimulation.IsLane(y) && x > 0 && x < 11 && x % 2 == 1)
                     Text("‹", cell, 28, Hex(0x4c5e71), false, TextAnchor.MiddleCenter);
                 if (x == 0 && DefenseSimulation.IsLane(y)) Text("守", cell, 20, Mint, true, TextAnchor.MiddleCenter);
@@ -158,7 +160,7 @@ namespace TapTapGameJam.PianoDefense
             }
             if (Board.Contains(mouse) && !game.Finished && !game.Paused)
             {
-                int x = (int)((mouse.x - Board.x) / Cell), y = (int)((mouse.y - Board.y) / Cell);
+                int x = (int)((mouse.x - Board.x) / Cell), y = (int)((mouse.y - Board.y) / RowHeight);
                 if (game.BuildMode && DefenseSimulation.IsBuildCell(x, y) && Sim.TowerAt(x, y) == null)
                 {
                     Rect r = CellRect(x, y); Fill(r, Alpha(Sim.Coins >= 8 ? Mint : PitchColors[0], 0.18f));
@@ -174,7 +176,7 @@ namespace TapTapGameJam.PianoDefense
                 Dot(center, 28, Hex(0x354756));
                 Fill(new Rect(center.x - 21, center.y - 19, 42, 33), Ink);
                 for (int k = 0; k < 4; k++) Fill(new Rect(center.x - 14 + k * 9, center.y - 19, 4, 18), Background);
-                Text(tower.Mode == TargetMode.All ? "全部" : (tower.Mode == TargetMode.Solo ? "独 " : "跳 ") + DefenseSimulation.NoteNames[tower.Pitch], new Rect(center.x - 31, center.y + 15, 62, 19), 11, tower.Mode == TargetMode.All ? Ink : PitchColors[tower.Pitch], true, TextAnchor.MiddleCenter);
+                Text(tower.Mode == TargetMode.All ? (tower.AssignedLane >= 0 ? (tower.AssignedLane == 1 ? "主旋律" : "伴奏 " + tower.AssignedLane / 2) : "全部") : (tower.Mode == TargetMode.Solo ? "独 " : "跳 ") + DefenseSimulation.NoteNames[tower.Pitch], new Rect(center.x - 31, center.y + 15, 62, 19), 11, tower.Mode == TargetMode.All ? Ink : PitchColors[tower.Pitch], true, TextAnchor.MiddleCenter);
             }
             if (!game.Replaying)
             {
@@ -186,7 +188,8 @@ namespace TapTapGameJam.PianoDefense
                     Vector2 center = Center(x, enemy.Lane);
                     Dot(center + new Vector2(0, 3), 23, Alpha(Color.black, 0.2f));
                     Dot(center, 22, PitchColors[enemy.Pitch]);
-                    Text(DefenseSimulation.NoteNames[enemy.Pitch], new Rect(center.x - 24, center.y - 14, 48, 28), 16, Background, true, TextAnchor.MiddleCenter);
+                    Text(DefenseSimulation.PitchNames[enemy.Pitch], new Rect(center.x - 24, center.y - 14, 48, 28), 16, Background, true, TextAnchor.MiddleCenter);
+                    Text("剩余 " + enemy.HitsRemaining + " 击", new Rect(center.x - 28, center.y + 17, 56, 17), 10, Ink, false, TextAnchor.MiddleCenter);
                     if (enemy.Speed == 2) Text("»", new Rect(center.x + 20, center.y - 13, 22, 26), 16, PitchColors[enemy.Pitch], true, TextAnchor.MiddleLeft);
                 }
                 foreach (var visual in game.Shots)
@@ -204,21 +207,9 @@ namespace TapTapGameJam.PianoDefense
         void MelodyPanel()
         {
             Card(new Rect(1160, 128, 256, 254));
-            Text("02  /  目标乐句", new Rect(1178, 146, 218, 24), 13, Mint, true);
-            int progress = Sim.MelodyProgress;
-            for (int i = 0; i < 4; i++)
-            {
-                int p = DefenseSimulation.TargetMelody[i]; float x = 1178 + i * 56;
-                Fill(new Rect(x, 190, 50, 65), progress > i ? PitchColors[p] : Hex(0x283647));
-                Text(DefenseSimulation.NoteNames[p], new Rect(x, 198, 50, 28), 17, progress > i ? Background : PitchColors[p], true, TextAnchor.MiddleCenter);
-                Text(DefenseSimulation.PitchNames[p], new Rect(x, 229, 50, 18), 11, progress > i ? Background : Muted, false, TextAnchor.MiddleCenter);
-            }
-            Text("每 16 拍结算  ·  已完成 " + Sim.CompleteMelodies + " 次", new Rect(1178, 270, 227, 22), 13, Ink);
-            Text("本乐句祝福", new Rect(1178, 297, 110, 22), 13, Ink);
-            for (int i = 0; i < 4; i++)
-                Fill(new Rect(1318 + i * 24, 297, 20, 20), Sim.MelodyProgress > i ? PitchColors[DefenseSimulation.TargetMelody[i]] : Hex(0x283647));
-            Text("每层 +1 币  ·  2 层以上据点 +1", new Rect(1178, 328, 227, 22), 13, Muted);
-            Text("4 层终止式：清除 1/4 敌人", new Rect(1178, 353, 227, 22), 13, Gold);
+            Text("02  /  和弦进行", new Rect(1178, 146, 218, 24), 13, Mint, true);
+            Paragraph(game.Level.title + "\n" + game.Level.summary, new Rect(1178, 187, 220, 89), 17, Ink);
+            Paragraph(game.Level.detail + "\n55 BPM · 共 " + Sim.TotalBeats + " 拍\n切换关卡将重置本局", new Rect(1178, 282, 220, 90), 13, Muted);
         }
 
         void TowerPanel()
@@ -234,10 +225,10 @@ namespace TapTapGameJam.PianoDefense
             string[] modes = { "全部", "独奏", "跳过" };
             for (int m = 0; m < 3; m++)
                 if (Btn(new Rect(1178 + m * 76, 459, 68, 36), modes[m], (int)tower.Mode == m, !game.Finished && !game.Paused)) game.SetMode(tower.Id, (TargetMode)m);
-            for (int p = 0; p < 8; p++)
+            for (int p = 0; p < DefenseSimulation.PitchNames.Length; p++)
             {
-                Rect r = new Rect(1178 + p % 4 * 56, 514 + p / 4 * 43, 48, 34);
-                if (Btn(r, DefenseSimulation.NoteNames[p], tower.Pitch == p, !game.Finished && !game.Paused)) game.SetPitch(tower.Id, p);
+                Rect r = new Rect(1178 + p % 7 * 32, 504 + p / 7 * 34, 30, 30);
+                if (Btn(r, DefenseSimulation.PitchNames[p], tower.Pitch == p, !game.Finished && !game.Paused)) game.SetPitch(tower.Id, p);
             }
             if (Btn(new Rect(1178, 620, 220, 35), "回收 ＋" + (game.Started ? 6 : 8) + "币  [Delete]", false, !game.Finished && !game.Paused)) game.SellSelected();
         }
@@ -245,30 +236,56 @@ namespace TapTapGameJam.PianoDefense
         void ScoreStrip()
         {
             Card(new Rect(296, 708, 840, 168));
-            Text(game.Replaying ? "击杀回放 / 保留你当时的每一拍" : "从战斗里，写下一段乐章", new Rect(312, 718, 585, 22), 14, Ink, true);
-            Text("同拍多音 = 和声", new Rect(936, 718, 182, 22), 12, Muted, false, TextAnchor.MiddleRight);
-            for (int y = 0; y < 5; y++) Fill(new Rect(318, 751 + y * 11, 796, 1), Hex(0x3b4959));
+            Text(game.Replaying ? "演奏回放 / 保留你当时的每一拍" : "从战斗里，写下一段乐章", new Rect(312, 718, 585, 22), 14, Ink, true);
+            Text("上下同拍对齐", new Rect(936, 718, 182, 22), 12, Muted, false, TextAnchor.MiddleRight);
+            const float staffLeft = 374, staffRight = 1118, beatWidth = 45;
+            Text("主旋律", new Rect(312, 746, 60, 20), 12, Mint, true);
+            Text("和弦", new Rect(312, 792, 60, 20), 12, Gold, true);
+            for (int line = 0; line < 5; line++)
+            {
+                Fill(new Rect(staffLeft, 744 + line * 6, staffRight - staffLeft, 1), Hex(0x3b4959));
+                Fill(new Rect(staffLeft, 790 + line * 6, staffRight - staffLeft, 1), Hex(0x3b4959));
+            }
+            // A shared time axis connects the melody and accompaniment staves.
+            Fill(new Rect(staffLeft, 744, 1, 70), Muted);
+            for (int bar = 1; bar <= 4; bar++)
+                Fill(new Rect(365 + bar * 4 * beatWidth, 744, 1, 70), Hex(0x3b4959));
             int audible = Math.Max(0, game.AudibleBeat), phraseStart = audible / 16 * 16;
             for (int i = 0; i < 16; i++)
             {
-                float x = 338 + i * 49;
-                if (game.AudibleBeat >= 0 && audible % 16 == i) Fill(new Rect(x - 17, 748, 35, 55), Alpha(Mint, 0.10f));
+                float x = 388 + i * beatWidth;
+                if (game.AudibleBeat >= 0 && audible % 16 == i)
+                    Fill(new Rect(x - 14, 740, 29, 86), Alpha(Mint, 0.10f));
             }
             foreach (var note in Sim.Notes)
             {
                 if (note.Beat < phraseStart || note.Beat >= phraseStart + 16 || note.Beat > game.AudibleBeat) continue;
-                float x = 338 + (note.Beat - phraseStart) * 49, y = 794 - note.Pitch * 6;
-                Dot(new Vector2(x, y), 5, PitchColors[note.Pitch]);
-                Fill(new Rect(x + 3, y - 19, 2, 20), PitchColors[note.Pitch]);
+                // Use the recorded enemy lane, so selling/rebuilding a tower cannot alter replay.
+                bool melody = note.Lane == 1;
+                string pitchName = DefenseSimulation.PitchNames[note.Pitch];
+                int degree = "CDEFGAB".IndexOf(pitchName[0]) + (pitchName[pitchName.Length - 1] - '0') * 7;
+                int bottomDegree = melody ? 37 : 30; // E5 / E4; upper staff displayed an octave higher.
+                float bottom = melody ? 768 : 814;
+                int steps = degree - bottomDegree;
+                float x = 388 + (note.Beat - phraseStart) * beatWidth, y = bottom - steps * 3;
+                for (int ledger = -2; ledger >= steps; ledger -= 2)
+                    Fill(new Rect(x - 7, bottom - ledger * 3, 14, 1), Muted);
+                for (int ledger = 10; ledger <= steps; ledger += 2)
+                    Fill(new Rect(x - 7, bottom - ledger * 3, 14, 1), Muted);
+                Dot(new Vector2(x, y), 3, PitchColors[note.Pitch]);
+                Fill(new Rect(x + 2, y - 10, 1.5f, 11), PitchColors[note.Pitch]);
+                if (pitchName.Contains("b"))
+                    Text("♭", new Rect(x - 13, y - 9, 10, 18), 12, PitchColors[note.Pitch]);
             }
-            for (int p = 0; p < 8; p++)
+            for (int p = 0; p < DefenseSimulation.PitchNames.Length; p++)
             {
-                Rect key = new Rect(316 + p * 100, 817, 96, 46);
-                bool flash = game.KeyFlash[p] > 0 && Time.unscaledTime - game.KeyFlash[p] < 0.3f;
-                Fill(key, flash ? PitchColors[p] : Ink);
-                Text(DefenseSimulation.NoteNames[p], new Rect(key.x + 6, key.y + 7, 57, 29), 17, Background, true);
-                Text(DefenseSimulation.PitchNames[p], new Rect(key.x + 56, key.y + 10, 36, 25), 11, Hex(0x566579));
-                if (GUI.Button(key, GUIContent.none, GUIStyle.none)) game.PreviewKey(p);
+
+                int pitch = KeyboardOrder[p];
+                Rect key = new Rect(316 + p * (800f / KeyboardOrder.Length), 837, 800f / KeyboardOrder.Length - 3, 30);
+                bool flash = game.KeyFlash[pitch] > 0 && Time.unscaledTime - game.KeyFlash[pitch] < 0.3f;
+                Fill(key, flash ? PitchColors[pitch] : Ink);
+                Text(DefenseSimulation.PitchNames[pitch], key, 14, Background, true, TextAnchor.MiddleCenter);
+                if (GUI.Button(key, GUIContent.none, GUIStyle.none)) game.PreviewKey(pitch);
             }
         }
 
@@ -276,11 +293,11 @@ namespace TapTapGameJam.PianoDefense
         {
             Card(new Rect(1160, 700, 256, 176));
             Text("音高即敌人的身份", new Rect(1178, 718, 220, 24), 15, Ink, true);
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < DefenseSimulation.PitchNames.Length; i++)
             {
-                float x = 1190 + i % 4 * 57, y = 772 + i / 4 * 42;
+                float x = 1190 + i % 7 * 32, y = 760 + i / 7 * 32;
                 Dot(new Vector2(x, y), 5, PitchColors[i]);
-                Text(DefenseSimulation.NoteNames[i], new Rect(x - 13, y + 8, 42, 20), 11, Muted);
+                Text(DefenseSimulation.PitchNames[i], new Rect(x - 13, y + 8, 42, 20), 11, Muted);
             }
         }
 
@@ -291,6 +308,7 @@ namespace TapTapGameJam.PianoDefense
             Text("乐章暂停", new Rect(518, 350, 404, 50), 28, Ink, true, TextAnchor.MiddleCenter);
             Text("切回窗口后，按空格继续。", new Rect(518, 409, 404, 35), 16, Muted, false, TextAnchor.MiddleCenter);
             if (Btn(new Rect(560, 476, 320, 48), "继续守夜  [空格]", true)) game.TogglePause();
+            LevelSwitchButtons(518, 534, 404);
         }
 
         void ResultsOverlay()
@@ -300,17 +318,25 @@ namespace TapTapGameJam.PianoDefense
             Text(Sim.Won ? "今夜，被你谱成了音乐。" : "乐章暂歇，再试一种布阵。", new Rect(420, 255, 600, 45), 27, Sim.Won ? Mint : PitchColors[0], true, TextAnchor.MiddleCenter);
             Text("乐章得分  " + Sim.Score, new Rect(420, 322, 600, 56), 38, Ink, true, TextAnchor.MiddleCenter);
             Text(new string('★', Sim.Stars) + new string('☆', 3 - Sim.Stars), new Rect(420, 384, 600, 34), 27, Gold, false, TextAnchor.MiddleCenter);
-            Text("守住 " + Sim.Hp + "/10  ·  击杀 " + Sim.Killed + "/" + Sim.TotalEnemies + "  ·  完整旋律 " + Sim.CompleteMelodies + " 次", new Rect(420, 440, 600, 27), 17, Muted, false, TextAnchor.MiddleCenter);
+            Text("守住 " + Sim.Hp + "/10  ·  击杀 " + Sim.Killed + "/" + Sim.TotalEnemies + "  ·  和声 " + Sim.Harmonies + " 拍", new Rect(420, 440, 600, 27), 17, Muted, false, TextAnchor.MiddleCenter);
             Text("记录了 " + Sim.Notes.Count + " 个钢琴音符，回放保留原始节拍和停顿。", new Rect(420, 482, 600, 26), 15, Ink, false, TextAnchor.MiddleCenter);
             if (Btn(new Rect(435, 542, 570, 48), "聆听这一次战斗的乐章", true, Sim.Notes.Count > 0)) game.ToggleReplay();
             if (Btn(new Rect(435, 606, 278, 40), "重新布阵", false)) game.NewGame(false);
             if (Btn(new Rect(727, 606, 278, 40), "再演一次示例", false)) game.NewGame(true);
+            LevelSwitchButtons(435, 650, 570);
+        }
+
+        void LevelSwitchButtons(float x, float y, float width)
+        {
+            float half = (width - 12) / 2;
+            if (Btn(new Rect(x, y, half, 24), "切换：4536251", game.SelectedLevelId == "progression-4536251")) game.SelectLevel("progression-4536251");
+            if (Btn(new Rect(x + half + 12, y, half, 24), "切换：卡农", game.SelectedLevelId == "canon")) game.SelectLevel("canon");
         }
 
         static Color Hex(int rgb) { return new Color(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f); }
         static Color Alpha(Color color, float alpha) { color.a = alpha; return color; }
-        Rect CellRect(int x, int y) { return new Rect(Board.x + x * Cell, Board.y + y * Cell, Cell, Cell); }
-        Vector2 Center(float x, float y) { return new Vector2(Board.x + (x + 0.5f) * Cell, Board.y + (y + 0.5f) * Cell); }
+        Rect CellRect(int x, int y) { return new Rect(Board.x + x * Cell, Board.y + y * RowHeight, Cell, RowHeight); }
+        Vector2 Center(float x, float y) { return new Vector2(Board.x + (x + 0.5f) * Cell, Board.y + (y + 0.5f) * RowHeight); }
         void Fill(Rect rect, Color color) { GUI.color = color; GUI.DrawTexture(rect, pixel != null ? pixel : Texture2D.whiteTexture); GUI.color = Color.white; }
         void Dot(Vector2 center, float radius, Color color) { GUI.color = color; GUI.DrawTexture(new Rect(center.x - radius, center.y - radius, radius * 2, radius * 2), circle); GUI.color = Color.white; }
         void Line(Vector2 a, Vector2 b, Color color, float width)

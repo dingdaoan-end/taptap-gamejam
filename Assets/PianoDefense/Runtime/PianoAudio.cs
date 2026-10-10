@@ -7,7 +7,7 @@ namespace TapTapGameJam.PianoDefense
     public sealed class PianoAudio : MonoBehaviour
     {
         readonly List<AudioSource> voices = new List<AudioSource>();
-        readonly AudioClip[] keys = new AudioClip[8];
+        readonly AudioClip[] keys = new AudioClip[DefenseSimulation.PitchNames.Length];
         AudioClip click;
         int voice;
         public bool Metronome = true;
@@ -18,7 +18,7 @@ namespace TapTapGameJam.PianoDefense
         void Awake()
         {
             const int rate = 44100;
-            for (int p = 0; p < 8; p++)
+            for (int p = 0; p < keys.Length; p++)
             {
                 var data = PianoSynthesis.Render(p, rate);
                 keys[p] = AudioClip.Create("Piano " + DefenseSimulation.PitchNames[p], data.Length, 1, rate, false);
