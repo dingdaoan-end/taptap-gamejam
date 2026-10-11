@@ -6,6 +6,8 @@ namespace TapTapGameJam.PianoDefense
 {
     public sealed class PianoAudio : MonoBehaviour
     {
+        [SerializeField] AudioClip[] pianoSamples = new AudioClip[8];
+        readonly bool[] generated = new bool[8];
         readonly List<AudioSource> voices = new List<AudioSource>();
         readonly AudioClip[] keys = new AudioClip[8];
         AudioClip click;
@@ -20,9 +22,12 @@ namespace TapTapGameJam.PianoDefense
             const int rate = 44100;
             for (int p = 0; p < 8; p++)
             {
+                if (pianoSamples != null && p < pianoSamples.Length && pianoSamples[p] != null)
+                { keys[p] = pianoSamples[p]; continue; }
                 var data = PianoSynthesis.Render(p, rate);
                 keys[p] = AudioClip.Create("Piano " + DefenseSimulation.PitchNames[p], data.Length, 1, rate, false);
                 keys[p].SetData(data, 0);
+                generated[p] = true;
             }
             float[] tick = new float[2646];
             for (int i = 0; i < tick.Length; i++)
@@ -59,7 +64,7 @@ namespace TapTapGameJam.PianoDefense
         public void StopAll() { foreach (var source in voices) source.Stop(); }
         void OnDestroy()
         {
-            StopAll(); foreach (var key in keys) if (key != null) Destroy(key);
+            StopAll(); for (int p = 0; p < keys.Length; p++) if (generated[p] && keys[p] != null) Destroy(keys[p]);
             if (click != null) Destroy(click);
         }
     }

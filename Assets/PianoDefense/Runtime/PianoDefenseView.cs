@@ -41,9 +41,18 @@ namespace TapTapGameJam.PianoDefense
             if (game == null || game.Simulation == null) return;
             EnsureStyles();
             GUI.color = Color.white;
-            Fill(new Rect(0, 0, Screen.width, Screen.height), Background);
             float scale = Mathf.Min(Screen.width / 1440f, Screen.height / 900f);
             Vector2 offset = new Vector2((Screen.width - 1440 * scale) * 0.5f, (Screen.height - 900 * scale) * 0.5f);
+            if (game.Board == null) Fill(new Rect(0, 0, Screen.width, Screen.height), Background);
+            else
+            {
+                game.Board.SetViewport(Board, offset, scale);
+                Rect hole = new Rect(offset.x + Board.x * scale, offset.y + Board.y * scale, Board.width * scale, Board.height * scale);
+                Fill(new Rect(0, 0, Screen.width, hole.y), Background);
+                Fill(new Rect(0, hole.y, hole.x, hole.height), Background);
+                Fill(new Rect(hole.xMax, hole.y, Screen.width - hole.xMax, hole.height), Background);
+                Fill(new Rect(0, hole.yMax, Screen.width, Screen.height - hole.yMax), Background);
+            }
             mouse = (Event.current.mousePosition - offset) / scale;
             Matrix4x4 old = GUI.matrix;
             GUI.matrix = Matrix4x4.TRS(offset, Quaternion.identity, new Vector3(scale, scale, 1));
@@ -82,7 +91,7 @@ namespace TapTapGameJam.PianoDefense
             Text(Sim.Killed + " / " + Sim.TotalEnemies, new Rect(954, 52, 145, 36), 26, Ink, true);
             if (Btn(new Rect(1160, 27, 122, 36), game.Sound.Muted ? "声音：关" : "声音：开", false)) game.Sound.SetMuted(!game.Sound.Muted);
             if (Btn(new Rect(1292, 27, 124, 36), game.Sound.Metronome ? "节拍器：开" : "节拍器：关", false)) game.Sound.Metronome = !game.Sound.Metronome;
-            Text("110 BPM  ·  4/4  ·  钢琴原型", new Rect(1160, 74, 256, 22), 13, Muted);
+            Text(game.Bpm + " BPM  ·  4/4  ·  钢琴原型", new Rect(1160, 74, 256, 22), 13, Muted);
             Fill(new Rect(24, 108, 1392, 1), Hex(0x2b3745));
         }
 
@@ -92,7 +101,7 @@ namespace TapTapGameJam.PianoDefense
             Text("01  /  布阵与守夜", new Rect(44, 148, 215, 22), 13, Mint, true);
             string title = game.Replaying ? "聆听你的乐章" : game.Finished ? "乐章落幕" : !game.Started ? "让防御成为旋律" : game.Paused ? "暂歇片刻" : "守夜进行中";
             Text(title, new Rect(44, 186, 214, 36), 23, Ink, true);
-            Paragraph(!game.Started ? "示例琴塔已就位。你可以直接开演，也可以清空后自由布阵。" : "敌人按拍前进，» 装饰音每拍两格、会抢拍。琴塔击杀时，奏响敌人身上的音符。", new Rect(44, 236, 207, 74), 15, Muted);
+            Paragraph(!game.Started ? "场景琴塔已就位。你可以直接开演，也可以清空后自由布阵。" : "敌人按拍前进，» 装饰音每拍两格、会抢拍。琴塔击杀时，奏响敌人身上的音符。", new Rect(44, 236, 207, 74), 15, Muted);
             if (game.Replaying)
             {
                 if (Btn(new Rect(44, 326, 208, 46), "停止回放", true)) game.ToggleReplay();
@@ -107,7 +116,7 @@ namespace TapTapGameJam.PianoDefense
             if (!game.Started)
             {
                 if (Btn(new Rect(44, 488, 208, 36), "清空，自己布阵", false)) game.NewGame(false);
-                if (Btn(new Rect(44, 536, 208, 36), "恢复示例布置", false)) game.NewGame(true);
+                if (Btn(new Rect(44, 536, 208, 36), "恢复场景布置", false)) game.NewGame(true);
             }
             else
             {
@@ -134,70 +143,18 @@ namespace TapTapGameJam.PianoDefense
             int beat = Math.Max(0, game.AudibleBeat);
             string wave = !game.Started ? "准备 / 可以自由调整布置" : game.Replaying ? "回放 / 原始击杀节拍" : beat < 32 ? "第 1 波 / 听见顺序" : beat < 40 ? "间奏 / 重新布阵" : beat < 72 ? "第 2 波 / 填充音·装饰音抢拍" : beat < 80 ? "间奏 / 为终段做准备" : "第 3 波 / 多路合奏·装饰音突进";
             Text(wave, new Rect(296, 125, 605, 25), 17, Ink, true);
-            Text((game.Started ? "拍 " + (game.AudibleBeat + 1) + " / 112" : "一夜约 60 秒") + "   ← 来敌", new Rect(908, 125, 228, 25), 14, Muted, false, TextAnchor.MiddleRight);
+            Text((game.Started ? "拍 " + (game.AudibleBeat + 1) + " / " + game.TotalBeats : "一夜约 " + Mathf.RoundToInt(game.TotalBeats * 60f / game.Bpm) + " 秒") + "   ← 来敌", new Rect(908, 125, 228, 25), 14, Muted, false, TextAnchor.MiddleRight);
             for (int i = 0; i < 16; i++)
             {
                 Color c = i % 4 == 0 ? Hex(0x425267) : Hex(0x293747);
                 if (game.AudibleBeat >= 0 && beat % 16 == i) c = Mint;
                 Fill(new Rect(Board.x + i * 52.5f, 162, 46.5f, 8), c);
             }
-            var selected = Sim.TowerById(game.SelectedTowerId);
-            for (int y = 0; y < 7; y++) for (int x = 0; x < 12; x++)
-            {
-                Rect cell = CellRect(x, y);
-                Color c = DefenseSimulation.IsLane(y) ? Hex(0x293646) : Hex(0x18222f);
-                if (x == 0) c = Hex(0x21483f);
-                if (x == 11) c = Hex(0x413139);
-                Fill(new Rect(cell.x + 1, cell.y + 1, Cell - 2, Cell - 2), c);
-                if (selected != null && Math.Abs(selected.X - x) + Math.Abs(selected.Y - y) <= 3)
-                    Fill(new Rect(cell.x + 2, cell.y + 2, Cell - 4, Cell - 4), Alpha(Mint, 0.10f));
-                if (DefenseSimulation.IsLane(y) && x > 0 && x < 11 && x % 2 == 1)
-                    Text("‹", cell, 28, Hex(0x4c5e71), false, TextAnchor.MiddleCenter);
-                if (x == 0 && DefenseSimulation.IsLane(y)) Text("守", cell, 20, Mint, true, TextAnchor.MiddleCenter);
-                if (x == 11 && DefenseSimulation.IsLane(y)) Text("入", cell, 18, Hex(0xb8818e), false, TextAnchor.MiddleCenter);
-            }
             if (Board.Contains(mouse) && !game.Finished && !game.Paused)
             {
                 int x = (int)((mouse.x - Board.x) / Cell), y = (int)((mouse.y - Board.y) / Cell);
-                if (game.BuildMode && DefenseSimulation.IsBuildCell(x, y) && Sim.TowerAt(x, y) == null)
-                {
-                    Rect r = CellRect(x, y); Fill(r, Alpha(Sim.Coins >= 8 ? Mint : PitchColors[0], 0.18f));
-                    Text("＋", r, 28, Sim.Coins >= 8 ? Mint : PitchColors[0], false, TextAnchor.MiddleCenter);
-                }
                 if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
                 { game.SelectOrBuild(x, y); Event.current.Use(); }
-            }
-            foreach (var tower in Sim.Towers)
-            {
-                Vector2 center = Center(tower.X, tower.Y);
-                if (tower.Id == game.SelectedTowerId) Dot(center, 31, Mint);
-                Dot(center, 28, Hex(0x354756));
-                Fill(new Rect(center.x - 21, center.y - 19, 42, 33), Ink);
-                for (int k = 0; k < 4; k++) Fill(new Rect(center.x - 14 + k * 9, center.y - 19, 4, 18), Background);
-                Text(tower.Mode == TargetMode.All ? "全部" : (tower.Mode == TargetMode.Solo ? "独 " : "跳 ") + DefenseSimulation.NoteNames[tower.Pitch], new Rect(center.x - 31, center.y + 15, 62, 19), 11, tower.Mode == TargetMode.All ? Ink : PitchColors[tower.Pitch], true, TextAnchor.MiddleCenter);
-            }
-            if (!game.Replaying)
-            {
-                foreach (var enemy in Sim.Enemies)
-                {
-                    float progress = Sim.Beat > game.AudibleBeat ? 0 : Mathf.Clamp01((float)((AudioSettings.dspTime - game.BeatTime) / 0.14));
-                    float x = Mathf.Lerp(enemy.PreviousX, enemy.X, progress);
-                    if (x >= 12) continue;
-                    Vector2 center = Center(x, enemy.Lane);
-                    Dot(center + new Vector2(0, 3), 23, Alpha(Color.black, 0.2f));
-                    Dot(center, 22, PitchColors[enemy.Pitch]);
-                    Text(DefenseSimulation.NoteNames[enemy.Pitch], new Rect(center.x - 24, center.y - 14, 48, 28), 16, Background, true, TextAnchor.MiddleCenter);
-                    if (enemy.Speed == 2) Text("»", new Rect(center.x + 20, center.y - 13, 22, 26), 16, PitchColors[enemy.Pitch], true, TextAnchor.MiddleLeft);
-                }
-                foreach (var visual in game.Shots)
-                {
-                    float t = (Time.unscaledTime - visual.Time) / 0.4f;
-                    var shot = visual.Shot; Color c = Alpha(PitchColors[shot.Pitch], 1 - t);
-                    Vector2 end = Center(shot.ToX, shot.ToY);
-                    if (t < 0.45f) Line(Center(shot.FromX, shot.FromY), end, c, 3);
-                    Dot(end, 13 + 20 * t, Alpha(c, (1 - t) * 0.25f));
-                    Text(DefenseSimulation.NoteNames[shot.Pitch], new Rect(end.x - 32, end.y - 22 - t * 30, 64, 26), 20, c, true, TextAnchor.MiddleCenter);
-                }
             }
         }
 

@@ -7,6 +7,35 @@ namespace TapTapGameJam.PianoDefense
     [RequireComponent(typeof(PianoAudio))]
     public sealed class PianoDefenseGame : MonoBehaviour
     {
+        [SerializeField, Range(40, 220)] int bpm = 110;
+        [SerializeField, Range(0, 64)] int startingCoins = 24;
+        [SerializeField, Min(16)] int totalBeats = 112;
+        [SerializeField] List<StartingTower> startingTowers = new List<StartingTower> {
+            new StartingTower(8, 2, TargetMode.All, 0),
+            new StartingTower(5, 4, TargetMode.All, 0),
+            new StartingTower(2, 2, TargetMode.All, 0)
+        };
+        [SerializeField] bool useCustomWaves;
+        [SerializeField] List<WaveSpawn> waveSpawns = new List<WaveSpawn>();
+        [SerializeField] PianoBoardScene board;
+        [SerializeField] bool useCompositionLessons;
+        [SerializeField] CompositionLessonAsset[] lessons;
+        [SerializeField, Range(0, 3)] int lessonIndex;
+
+        public bool CompositionMode { get { return useCompositionLessons; } }
+        public int LessonIndex { get { return lessonIndex; } }
+        public string LessonTitle { get { return CurrentLesson != null ? CurrentLesson.Title : CompositionLessons.Titles[lessonIndex]; } }
+        public string LessonHint { get { return CurrentLesson != null ? CurrentLesson.Hint : CompositionLessons.Hints[lessonIndex]; } }
+        public float ResonanceTime { get; private set; } = -10;
+        CompositionLessonAsset CurrentLesson { get { return lessons != null && lessonIndex < lessons.Length ? lessons[lessonIndex] : null; } }
+
+        public int Bpm { get { return bpm; } }
+        public int TotalBeats { get { return totalBeats; } }
+        public int StartingCoins { get { return startingCoins; } }
+        public IReadOnlyList<StartingTower> StartingTowers { get { return startingTowers; } }
+        public bool UseCustomWaves { get { return useCustomWaves; } }
+        public IReadOnlyList<WaveSpawn> WaveSpawns { get { return waveSpawns; } }
+        public PianoBoardScene Board { get { return board; } }
         public DefenseSimulation Simulation { get; private set; }
         public DefenseSimulation Display { get; private set; }
         public PianoAudio Sound { get; private set; }
@@ -38,14 +67,58 @@ namespace TapTapGameJam.PianoDefense
             NewGame(true);
         }
 
+        void OnValidate()
+        {
+            bpm = Mathf.Clamp(bpm, 40, 220);
+            startingCoins = Mathf.Clamp(startingCoins, 0, 64);
+            totalBeats = Mathf.Max(16, totalBeats);
+        }
+
+        IEnumerable<SpawnEvent> ConfiguredWaves()
+        {
+            if (!useCustomWaves) return DefenseSimulation.CreateWaves();
+            var result = new List<SpawnEvent>();
+            if (waveSpawns == null) return result;
+            foreach (var entry in waveSpawns)
+                if (entry.Beat >= 0 && DefenseSimulation.IsLane(entry.Lane) && entry.Pitch >= 0 && entry.Pitch < 8 && entry.Speed >= 1 && entry.Speed <= 2)
+                    result.Add(new SpawnEvent(entry.Beat, entry.Lane, entry.Pitch, entry.Speed));
+            return result;
+        }
+
         public void NewGame(bool example)
         {
             clock.Stop(); Sound.StopAll(); pending = null;
-            Simulation = new DefenseSimulation(); if (example) Simulation.ApplyExampleLayout();
+            if (useCompositionLessons)
+            {
+                bpm = CurrentLesson != null ? CurrentLesson.Bpm : CompositionLessons.Tempo(lessonIndex);
+                totalBeats = CurrentLesson != null ? CurrentLesson.TotalBeats : CompositionLessons.Beats(lessonIndex);
+                startingCoins = CurrentLesson != null ? CurrentLesson.StartingCoins : CompositionLessons.Budget(lessonIndex);
+                Simulation = CurrentLesson != null ? CurrentLesson.CreateSimulation() : CompositionLessons.CreateSimulation(lessonIndex, false);
+                if (example) Simulation.ApplyStartingTowers(board != null ? board.ReadStartingTowers(lessonIndex) : CompositionLessons.Layout(lessonIndex));
+            }
+            else
+            {
+                Simulation = new DefenseSimulation(ConfiguredWaves(), totalBeats, startingCoins);
+                if (example) Simulation.ApplyStartingTowers(board != null ? board.ReadStartingTowers() : startingTowers);
+            }
+            clock.SecondsPerBeat = 60.0 / bpm;
             Display = Simulation.Snapshot(); queuedInput.Clear();
             Started = Finished = Replaying = false; AudibleBeat = -1; SelectedTowerId = -1; BuildMode = true;
             Shots.Clear(); Array.Clear(KeyFlash, 0, KeyFlash.Length);
-            ShowNotice(example ? "已放好 3 座示例琴塔。按空格，听见第一段旋律。" : "点击空地放置琴塔，每座 8 币；准备好后开始守夜。");
+            ResonanceTime = -10;
+            ShowNotice(example ? "已载入场景布阵。按空格，听见第一段旋律。" : "点击空地放置琴塔，每座 8 币；准备好后开始守夜。");
+        }
+
+        public void SelectLesson(int index)
+        {
+            if (!useCompositionLessons) return;
+            lessonIndex = Mathf.Clamp(index, 0, CompositionLessons.Count - 1);
+            NewGame(true);
+        }
+
+        public void SetRhythm(int id, TowerRhythm rhythm)
+        {
+            RunOrQueue(() => Simulation.SetRhythm(id, rhythm));
         }
 
         public void StartBattle()
@@ -106,6 +179,7 @@ namespace TapTapGameJam.PianoDefense
                     AudibleBeat = pending.Beat;
                     foreach (var note in pending.Notes) KeyFlash[note.Pitch] = Time.unscaledTime;
                     foreach (var shot in pending.Shots) Shots.Add(new VisualShot { Shot = shot, Time = Time.unscaledTime });
+                    if (pending.Resonance) { ResonanceTime = Time.unscaledTime; ShowNotice("Do · Mi · Sol 共鸣！全场休止一拍，+3 乐章币。"); }
                     if (pending.Leaks.Count > 0) ShowNotice("漏过 " + pending.Leaks.Count + " 个音符，据点受损！");
                     if (pending.PhraseProgress == 4) ShowNotice("完整旋律！终止式清除 " + pending.CadenceVictims.Count + " 个敌人，祝福 4 层。");
                     else if (pending.PhraseProgress > 0) ShowNotice("乐句祝福 " + pending.PhraseProgress + " 层：+" + pending.PhraseProgress + " 币" + (pending.Healed > 0 ? "，据点回复 1" : "") + "。");

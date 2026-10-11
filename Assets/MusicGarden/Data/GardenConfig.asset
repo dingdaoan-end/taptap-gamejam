@@ -1,0 +1,1068 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 399ff02e6b49918499fdc81aac079c3f, type: 3}
+  m_Name: GardenConfig
+  m_EditorClassIdentifier: 
+  bpm: 100
+  diamondChordRange: 0
+  regions:
+  - id: 1
+    columns: 25
+    rows: 13
+    quadrant: NW
+    cells:
+    - GGGXXGGGGGGGGGGGGGGGGGGXX
+    - GGXXXGGGGGGGGGGGGGGGGXXGX
+    - RRRGGGGGGGXGGGXXXGGGGGGGG
+    - XXRGGGGRRRRGGGGGGGGGGGGGG
+    - XXRGGGGRXXRGGGGGGGGGGXGGG
+    - XXRGGGGRGXRGGGGGRRRRRRRGG
+    - GGRGGGGRGXRGGGGGRGGGXXRGG
+    - GGRXGGGRGGRRRGGGRGGXGXRGG
+    - GGRXGGGRGGGGRGGGRGGGGGRGG
+    - GGRXGGGRGGGGRGGXRGGGGBBBB
+    - GGRXGGGRXGGGRRRRRGGGGBBBB
+    - XXRRRRRRXGGGGGXXGGGGGBBBB
+    - XXGGGGGGXGGGGGXXGGGGGBBBB
+    route:
+    - x: 0
+      y: 2
+    - x: 1
+      y: 2
+    - x: 2
+      y: 2
+    - x: 2
+      y: 3
+    - x: 2
+      y: 4
+    - x: 2
+      y: 5
+    - x: 2
+      y: 6
+    - x: 2
+      y: 7
+    - x: 2
+      y: 8
+    - x: 2
+      y: 9
+    - x: 2
+      y: 10
+    - x: 2
+      y: 11
+    - x: 3
+      y: 11
+    - x: 4
+      y: 11
+    - x: 5
+      y: 11
+    - x: 6
+      y: 11
+    - x: 7
+      y: 11
+    - x: 7
+      y: 10
+    - x: 7
+      y: 9
+    - x: 7
+      y: 8
+    - x: 7
+      y: 7
+    - x: 7
+      y: 6
+    - x: 7
+      y: 5
+    - x: 7
+      y: 4
+    - x: 7
+      y: 3
+    - x: 8
+      y: 3
+    - x: 9
+      y: 3
+    - x: 10
+      y: 3
+    - x: 10
+      y: 4
+    - x: 10
+      y: 5
+    - x: 10
+      y: 6
+    - x: 10
+      y: 7
+    - x: 11
+      y: 7
+    - x: 12
+      y: 7
+    - x: 12
+      y: 8
+    - x: 12
+      y: 9
+    - x: 12
+      y: 10
+    - x: 13
+      y: 10
+    - x: 14
+      y: 10
+    - x: 15
+      y: 10
+    - x: 16
+      y: 10
+    - x: 16
+      y: 9
+    - x: 16
+      y: 8
+    - x: 16
+      y: 7
+    - x: 16
+      y: 6
+    - x: 16
+      y: 5
+    - x: 17
+      y: 5
+    - x: 18
+      y: 5
+    - x: 19
+      y: 5
+    - x: 20
+      y: 5
+    - x: 21
+      y: 5
+    - x: 22
+      y: 5
+    - x: 22
+      y: 6
+    - x: 22
+      y: 7
+    - x: 22
+      y: 8
+    pads:
+    - x: 3
+      y: 3
+    - x: 3
+      y: 4
+    - x: 3
+      y: 2
+    - x: 14
+      y: 8
+    - x: 18
+      y: 6
+    - x: 11
+      y: 8
+    - x: 5
+      y: 9
+    - x: 11
+      y: 5
+    - x: 8
+      y: 7
+    - x: 5
+      y: 12
+    - x: 8
+      y: 2
+    - x: 18
+      y: 3
+  - id: 2
+    columns: 25
+    rows: 13
+    quadrant: NE
+    cells:
+    - XXXGGGGGGGGGGGGGGXXXXXRRR
+    - XXXGGGGGGGGGGGGGGXGXRRRXR
+    - GGXGGGGXGGGGGRRRRGGXRXXXR
+    - GGXXRRRRRRRXXRXXRXGXRXGXR
+    - GGXXRGGXGGRGXRXXRRRRRXGXR
+    - GGRRRGGGGXRGXRGGXGGGXXRRR
+    - GXRGGGGGGXRRRRXGGXXXGGRGG
+    - XXRGGGGGGGXXXXXGRRRRXGRGX
+    - XXRXGGGGGGGRRRGGRGGRXGRGX
+    - BBBBXGGGGGGRXRRRRXGRXGRXX
+    - BBBBRRRRRRRRXGGGGGGRRRRXX
+    - BBBBXGXXGXXXGGGGGGGGGGXXX
+    - BBBBGGXXGGXXGGGGGGGGGGXXX
+    route:
+    - x: 24
+      y: 0
+    - x: 24
+      y: 1
+    - x: 24
+      y: 2
+    - x: 24
+      y: 3
+    - x: 24
+      y: 4
+    - x: 24
+      y: 5
+    - x: 23
+      y: 5
+    - x: 22
+      y: 5
+    - x: 22
+      y: 6
+    - x: 22
+      y: 7
+    - x: 22
+      y: 8
+    - x: 22
+      y: 9
+    - x: 22
+      y: 10
+    - x: 21
+      y: 10
+    - x: 20
+      y: 10
+    - x: 19
+      y: 10
+    - x: 19
+      y: 9
+    - x: 19
+      y: 8
+    - x: 19
+      y: 7
+    - x: 18
+      y: 7
+    - x: 17
+      y: 7
+    - x: 16
+      y: 7
+    - x: 16
+      y: 8
+    - x: 16
+      y: 9
+    - x: 15
+      y: 9
+    - x: 14
+      y: 9
+    - x: 13
+      y: 9
+    - x: 13
+      y: 8
+    - x: 12
+      y: 8
+    - x: 11
+      y: 8
+    - x: 11
+      y: 9
+    - x: 11
+      y: 10
+    - x: 10
+      y: 10
+    - x: 9
+      y: 10
+    - x: 8
+      y: 10
+    - x: 7
+      y: 10
+    - x: 6
+      y: 10
+    - x: 5
+      y: 10
+    - x: 4
+      y: 10
+    pads:
+    - x: 23
+      y: 6
+    - x: 21
+      y: 7
+    - x: 23
+      y: 7
+    - x: 14
+      y: 8
+    - x: 17
+      y: 8
+    - x: 9
+      y: 8
+    - x: 15
+      y: 10
+    - x: 20
+      y: 11
+    - x: 6
+      y: 9
+    - x: 18
+      y: 10
+    - x: 15
+      y: 6
+    - x: 13
+      y: 11
+  - id: 3
+    columns: 25
+    rows: 13
+    quadrant: SW
+    cells:
+    - XXGGXRRRRRRXGGGXXRRRRBBBB
+    - XXRRRRGGGGRRRRGXXRGXXBBBB
+    - XXRGXXGGGGGGGRGGGRXGGBBBB
+    - XXRGGGGGGGGGGRRRRRXRRBBBB
+    - XXRXGGGGGGGXXGGXXXXRGGGXR
+    - RRRXGRRRRRGXXXXGGRRRGGGXR
+    - GGGGXRGGGRGRRRRGXRGGGGGGR
+    - XGGGXRGGGRGRGGRGXRXGXXXGR
+    - XXGGXRGGGRRRGGRRRRGGXXXXR
+    - XXRRRRGGXXXXXXGXXGGGGXRRR
+    - XXRXXXXGGGGGXXXXXGGGGGRXX
+    - XXRXXXRRRRRRRRRRRRRGGGRXX
+    - RRRRRRRXXXXXGGGGGXRRRRRXX
+    route:
+    - x: 0
+      y: 5
+    - x: 1
+      y: 5
+    - x: 2
+      y: 5
+    - x: 2
+      y: 4
+    - x: 2
+      y: 3
+    - x: 2
+      y: 2
+    - x: 2
+      y: 1
+    - x: 3
+      y: 1
+    - x: 4
+      y: 1
+    - x: 5
+      y: 1
+    - x: 5
+      y: 0
+    - x: 6
+      y: 0
+    - x: 7
+      y: 0
+    - x: 8
+      y: 0
+    - x: 9
+      y: 0
+    - x: 10
+      y: 0
+    - x: 10
+      y: 1
+    - x: 11
+      y: 1
+    - x: 12
+      y: 1
+    - x: 13
+      y: 1
+    - x: 13
+      y: 2
+    - x: 13
+      y: 3
+    - x: 14
+      y: 3
+    - x: 15
+      y: 3
+    - x: 16
+      y: 3
+    - x: 17
+      y: 3
+    - x: 17
+      y: 2
+    - x: 17
+      y: 1
+    - x: 17
+      y: 0
+    - x: 18
+      y: 0
+    - x: 19
+      y: 0
+    - x: 20
+      y: 0
+    pads:
+    - x: 1
+      y: 6
+    - x: 0
+      y: 6
+    - x: 2
+      y: 6
+    - x: 11
+      y: 2
+    - x: 15
+      y: 2
+    - x: 6
+      y: 1
+    - x: 9
+      y: 1
+    - x: 3
+      y: 2
+    - x: 2
+      y: 0
+    - x: 13
+      y: 0
+    - x: 13
+      y: 4
+    - x: 18
+      y: 1
+  - id: 4
+    columns: 25
+    rows: 13
+    quadrant: SE
+    cells:
+    - BBBBRRRRRRRRGXXRRRRRGXXXX
+    - BBBBXXXXXGGRRRRRGGXRGXRRR
+    - BBBBRRRXXXXGGXXXGGGRRRRXX
+    - BBBBXXRRRRGXXXXGXGGGXXXXX
+    - XRXGGXXXGRGXRRRRRGGXGGGXX
+    - XRRRRRGGGRGGRGGGRGXRRRRGX
+    - XXXGXRGGGRXGRGGXRGXRGGRGX
+    - GRRRRRGGGRRRRGGXRGXRXGRXX
+    - GRGGGGGGGGXXGGGXRRRRXGRXX
+    - GRXGGGGGGXGGXXGXGGGGXGRXX
+    - GRRRRRRRRRRRRRXGGGGGGGRRR
+    - XXXGXGGGGGGGXRXGGXXXXXGGR
+    - XXXXXGGGGGGGXRXGGXXXXXGGR
+    route:
+    - x: 24
+      y: 12
+    - x: 24
+      y: 11
+    - x: 24
+      y: 10
+    - x: 23
+      y: 10
+    - x: 22
+      y: 10
+    - x: 22
+      y: 9
+    - x: 22
+      y: 8
+    - x: 22
+      y: 7
+    - x: 22
+      y: 6
+    - x: 22
+      y: 5
+    - x: 21
+      y: 5
+    - x: 20
+      y: 5
+    - x: 19
+      y: 5
+    - x: 19
+      y: 6
+    - x: 19
+      y: 7
+    - x: 19
+      y: 8
+    - x: 18
+      y: 8
+    - x: 17
+      y: 8
+    - x: 16
+      y: 8
+    - x: 16
+      y: 7
+    - x: 16
+      y: 6
+    - x: 16
+      y: 5
+    - x: 16
+      y: 4
+    - x: 15
+      y: 4
+    - x: 14
+      y: 4
+    - x: 13
+      y: 4
+    - x: 12
+      y: 4
+    - x: 12
+      y: 5
+    - x: 12
+      y: 6
+    - x: 12
+      y: 7
+    - x: 11
+      y: 7
+    - x: 10
+      y: 7
+    - x: 9
+      y: 7
+    - x: 9
+      y: 6
+    - x: 9
+      y: 5
+    - x: 9
+      y: 4
+    - x: 9
+      y: 3
+    - x: 8
+      y: 3
+    - x: 7
+      y: 3
+    - x: 6
+      y: 3
+    - x: 6
+      y: 2
+    - x: 5
+      y: 2
+    - x: 4
+      y: 2
+    pads:
+    - x: 23
+      y: 11
+    - x: 21
+      y: 9
+    - x: 21
+      y: 10
+    - x: 14
+      y: 5
+    - x: 21
+      y: 6
+    - x: 11
+      y: 5
+    - x: 17
+      y: 6
+    - x: 8
+      y: 5
+    - x: 18
+      y: 9
+    - x: 20
+      y: 4
+    - x: 10
+      y: 3
+    - x: 23
+      y: 5
+  stages:
+  - regionId: 1
+    budget: 24
+    segments: 2
+    title: "\u521D\u89C1 \xB7 \u4E00\u5EA7\u7434\uFF0C\u4E00\u6BB5\u8DEF"
+    instruction: "\u70B9\u7A7A\u95F2\u8349\u5730\u5E03\u5854\uFF0C\u77F3\u53F0\u662F\u63A8\u8350\u4F4D\u7F6E\u3002\u9009\u666E\u901A\u7434\u5854\u6309
+      R\uFF0C\u7528 A / S / D \u9884\u7EA6 Do / Mi / Sol\uFF1B\u51FB\u6740\u624D\u54CD\u97F3\u3002"
+    waves:
+    - beat: 0
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 0
+      speed: 1
+      chord: 0
+  - regionId: 2
+    budget: 24
+    segments: 2
+    title: "\u5E94\u7B54 \xB7 \u8BA9\u58F0\u90E8\u9519\u5F00"
+    instruction: "\u8BD5\u7740\u628A\u4E00\u5EA7\u7434\u5854\u6539\u4E3A\u53CD\u62CD\uFF0C\u8BA9\u5176\u4ED6\u7434\u5854\u63A5\u8BDD\u3002\u969C\u788D\u4F1A\u906E\u6321\u653B\u51FB\uFF0C\u5EFA\u9020\u524D\u67E5\u770B\u7D2B\u8272\u6709\u6548\u683C\u3002"
+    waves:
+    - beat: 0
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 0
+      speed: 1
+      chord: 0
+  - regionId: 4
+    budget: 32
+    segments: 3
+    title: "\u5408\u594F \xB7 \u5355\u97F3\u4E0E\u548C\u5F26"
+    instruction: "\u548C\u5F26\u602A\u6709 3 \u751F\u547D\u3002\u548C\u5F26\u7434\u5854\u5728\u91CD\u62CD\u6E05\u7406\u5B83\u4EEC\uFF1B\u666E\u901A\u5854\u53EF\u6162\u6162\u62C6\u89E3\u3002\u4E09\u97F3\u4E0E\u53E6\u4E00\u4E2A\u58F0\u90E8\u540C\u62CD\u5E94\u7B54\uFF0C\u53EF\u8BA9\u654C\u7FA4\u4F11\u6B62\u3002"
+    waves:
+    - beat: 0
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 0
+      speed: 1
+      chord: 1
+    - beat: 8
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 8
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 4
+      speed: 1
+      chord: 1
+    - beat: 16
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 20
+      pitch: 2
+      speed: 1
+      chord: 1
+    - beat: 24
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 0
+      speed: 1
+      chord: 1
+    - beat: 32
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 32
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 32
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 36
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 36
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 36
+      pitch: 4
+      speed: 1
+      chord: 1
+    - beat: 40
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 40
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 40
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 44
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 44
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 44
+      pitch: 2
+      speed: 1
+      chord: 1
+  - regionId: 3
+    budget: 40
+    segments: 3
+    title: "\u6D8C\u73B0 \xB7 \u5B8C\u6210\u4F60\u7684\u7F16\u6392"
+    instruction: "\u9009\u62E9\u4F4D\u7F6E\u3001\u8282\u62CD\u548C\u9886\u594F\u65F6\u673A\u3002\u56DB\u533A\u5171\u7528\u6838\u5FC3\uFF1B\u8BA9\u591A\u4E2A\u771F\u5B9E\u51FB\u6740\u5F62\u6210\u5408\u594F\uFF0C\u518D\u542C\u8FD9\u5C40\u81EA\u5DF1\u6F14\u51FA\u7684\u97F3\u4E50\u3002"
+    waves:
+    - beat: 0
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 0
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 4
+      pitch: 0
+      speed: 1
+      chord: 1
+    - beat: 8
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 8
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 8
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 12
+      pitch: 4
+      speed: 1
+      chord: 1
+    - beat: 16
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 16
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 20
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 20
+      pitch: 2
+      speed: 1
+      chord: 1
+    - beat: 24
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 24
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 28
+      pitch: 0
+      speed: 1
+      chord: 1
+    - beat: 32
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 32
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 32
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 36
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 36
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 36
+      pitch: 4
+      speed: 1
+      chord: 1
+    - beat: 40
+      pitch: 2
+      speed: 1
+      chord: 0
+    - beat: 40
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 40
+      pitch: 0
+      speed: 1
+      chord: 0
+    - beat: 44
+      pitch: 4
+      speed: 1
+      chord: 0
+    - beat: 44
+      pitch: 0
+      speed: 2
+      chord: 0
+    - beat: 44
+      pitch: 2
+      speed: 1
+      chord: 1
+  actors:
+  - {fileID: -5444233317874666825, guid: 1dba9f18c75651544b05b63a6ae1f24d, type: 3}
+  - {fileID: -6435906107753640182, guid: 1dba9f18c75651544b05b63a6ae1f24d, type: 3}
+  - {fileID: -3359611743317158056, guid: 1dba9f18c75651544b05b63a6ae1f24d, type: 3}
+  - {fileID: 658304456086672543, guid: 1dba9f18c75651544b05b63a6ae1f24d, type: 3}
+  - {fileID: -292846921477773465, guid: 1dba9f18c75651544b05b63a6ae1f24d, type: 3}
+  - {fileID: -1856928487688344764, guid: 1dba9f18c75651544b05b63a6ae1f24d, type: 3}
+  terrain:
+  - {fileID: -2727699785648066001, guid: 0f84d6e7a1ef29e4287c15fd43ec1018, type: 3}
+  - {fileID: -3360004824500145224, guid: 0f84d6e7a1ef29e4287c15fd43ec1018, type: 3}
+  - {fileID: -6257950992702291771, guid: 0f84d6e7a1ef29e4287c15fd43ec1018, type: 3}
+  - {fileID: -7702633668311270527, guid: 0f84d6e7a1ef29e4287c15fd43ec1018, type: 3}
+  towerPrefabs:
+  - {fileID: 4813541488003881399, guid: ced246af87d0a8f4b9b6608fc7169900, type: 3}
+  - {fileID: 8947763853949733442, guid: 34675582f3eefaa4590f8487f731eab3, type: 3}
+  enemyPrefabs:
+  - {fileID: 3160928014251596918, guid: 5f1486c2ddeed094aa3efad3b1141467, type: 3}
+  - {fileID: 2938402296138027362, guid: e4338125ce8f54e4494b423eb910ad23, type: 3}
+  - {fileID: 6816139175326497073, guid: d1794b386a112e24eb54c1bc3196bfbd, type: 3}
+  square: {fileID: 21300000, guid: 394100a3f57d5d94e812190cc5981e64, type: 3}
+  circle: {fileID: 21300000, guid: 5b0d776d33c4042458028d658e5a75a7, type: 3}
+  font: {fileID: 12800000, guid: b0406f45af88862418b0096bdc7bc753, type: 3}
+  samples:
+  - {fileID: 8300000, guid: e656acfbfe8c5e94e85dee6ad85f3329, type: 3}
+  - {fileID: 8300000, guid: 9144a53907736374db7b77871c362761, type: 3}
+  - {fileID: 8300000, guid: 20b66903c6e4ed143b46ec76961f489f, type: 3}
+  - {fileID: 8300000, guid: f9f742ba636d88d4684ff8e0e634a1c1, type: 3}
+  - {fileID: 8300000, guid: 9f88bdbecd206fc469e396726589ea81, type: 3}
+  - {fileID: 8300000, guid: ad41ea74cfc596447a21bdae5af6b58e, type: 3}
+  - {fileID: 8300000, guid: cbefb49142fb7c446b1fea9b60617b0b, type: 3}
+  - {fileID: 8300000, guid: c7e436ea13c50d544bff6ff8aeeebe3f, type: 3}

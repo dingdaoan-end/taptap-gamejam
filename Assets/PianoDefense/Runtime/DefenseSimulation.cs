@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace TapTapGameJam.PianoDefense
 {
     public enum TargetMode { All, Solo, Skip }
+    public enum TowerRhythm { EveryBeat, Downbeat, Offbeat, FirstBeat }
 
     public sealed class NoteEvent
     {
@@ -18,15 +19,32 @@ namespace TapTapGameJam.PianoDefense
         public SpawnEvent(int beat, int lane, int pitch, int speed) { Beat = beat; Lane = lane; Pitch = pitch; Speed = speed; }
     }
 
+    [Serializable]
+    public struct WaveSpawn
+    {
+        public int Beat, Lane, Pitch, Speed;
+    }
+
     public sealed class EnemyState
     {
-        public int Id, X, PreviousX, Lane, Pitch, Speed = 1;
+        public int Id, X, PreviousX, Lane, Pitch, Speed = 1, HoldBeats;
     }
 
     public sealed class TowerState
     {
         public int Id, X, Y, Pitch;
         public TargetMode Mode;
+        public TowerRhythm Rhythm;
+    }
+
+    [Serializable]
+    public struct StartingTower
+    {
+        public int X, Y, Pitch;
+        public TargetMode Mode;
+        public TowerRhythm Rhythm;
+        public StartingTower(int x, int y, TargetMode mode, int pitch, TowerRhythm rhythm = TowerRhythm.EveryBeat)
+        { X = x; Y = y; Mode = mode; Pitch = pitch; Rhythm = rhythm; }
     }
 
     public sealed class ShotEvent
@@ -43,6 +61,7 @@ namespace TapTapGameJam.PianoDefense
         public readonly List<EnemyState> CadenceVictims = new List<EnemyState>();
         public int PhraseProgress = -1;
         public int Healed;
+        public bool Resonance;
     }
 
     public sealed class DefenseSimulation
@@ -58,6 +77,7 @@ namespace TapTapGameJam.PianoDefense
         readonly List<NoteEvent> notes = new List<NoteEvent>();
         readonly List<NoteEvent> phrase = new List<NoteEvent>();
         readonly List<SpawnEvent> spawns;
+        readonly int startingCoins;
         int nextSpawn, nextEnemyId, nextTowerId, phrases;
         double completionSum;
         public int Beat { get; private set; } = -1;
@@ -67,6 +87,7 @@ namespace TapTapGameJam.PianoDefense
         public int Leaked { get; private set; }
         public int CompleteMelodies { get; private set; }
         public int Harmonies { get; private set; }
+        public int Resonances { get; private set; }
         public int LastPhraseProgress { get; private set; }
         public bool Finished { get; private set; }
         public bool Won { get { return Finished && Hp > 0; } }
@@ -81,10 +102,12 @@ namespace TapTapGameJam.PianoDefense
         public int Score { get { return (int)Math.Round(600 * KillRate + 300 * Hp / MaxHp + 900 * (phrases == 0 ? 0 : completionSum / phrases) + 60 * Harmonies); } }
         public int Stars { get { return (KillRate >= 0.9 ? 1 : 0) + (Hp >= 8 ? 1 : 0) + (CompleteMelodies >= 2 ? 1 : 0); } }
 
-        public DefenseSimulation() : this(CreateWaves(), 112) { }
+        public DefenseSimulation() : this(CreateWaves(), 112, 24) { }
 
-        public DefenseSimulation(IEnumerable<SpawnEvent> wave, int totalBeats)
+        public DefenseSimulation(IEnumerable<SpawnEvent> wave, int totalBeats, int startingCoins = 24)
         {
+            this.startingCoins = Math.Max(0, startingCoins);
+            Coins = this.startingCoins;
             spawns = new List<SpawnEvent>(wave);
             // Stable sorting preserves simultaneous spawn priority.
             for (int i = 1; i < spawns.Count; i++)
@@ -102,15 +125,15 @@ namespace TapTapGameJam.PianoDefense
         public static bool IsLane(int y) { return y == 1 || y == 3 || y == 5; }
         public DefenseSimulation Snapshot()
         {
-            var copy = new DefenseSimulation(spawns, TotalBeats)
+            var copy = new DefenseSimulation(spawns, TotalBeats, startingCoins)
             {
                 Beat = Beat, Coins = Coins, Hp = Hp, Killed = Killed, Leaked = Leaked,
-                CompleteMelodies = CompleteMelodies, Harmonies = Harmonies, LastPhraseProgress = LastPhraseProgress,
+                CompleteMelodies = CompleteMelodies, Harmonies = Harmonies, Resonances = Resonances, LastPhraseProgress = LastPhraseProgress,
                 Finished = Finished, nextSpawn = nextSpawn, nextEnemyId = nextEnemyId,
                 nextTowerId = nextTowerId, phrases = phrases, completionSum = completionSum
             };
-            foreach (var t in towers) copy.towers.Add(new TowerState { Id = t.Id, X = t.X, Y = t.Y, Pitch = t.Pitch, Mode = t.Mode });
-            foreach (var e in enemies) copy.enemies.Add(new EnemyState { Id = e.Id, X = e.X, PreviousX = e.PreviousX, Lane = e.Lane, Pitch = e.Pitch, Speed = e.Speed });
+            foreach (var t in towers) copy.towers.Add(new TowerState { Id = t.Id, X = t.X, Y = t.Y, Pitch = t.Pitch, Mode = t.Mode, Rhythm = t.Rhythm });
+            foreach (var e in enemies) copy.enemies.Add(new EnemyState { Id = e.Id, X = e.X, PreviousX = e.PreviousX, Lane = e.Lane, Pitch = e.Pitch, Speed = e.Speed, HoldBeats = e.HoldBeats });
             copy.notes.AddRange(notes); copy.phrase.AddRange(phrase);
             return copy;
         }
@@ -140,16 +163,46 @@ namespace TapTapGameJam.PianoDefense
             tower.Mode = mode; tower.Pitch = pitch;
         }
 
+        public void SetRhythm(int id, TowerRhythm rhythm)
+        {
+            var tower = TowerById(id);
+            if (Finished || tower == null || rhythm < TowerRhythm.EveryBeat || rhythm > TowerRhythm.FirstBeat) return;
+            tower.Rhythm = rhythm;
+        }
+
+        public static bool AttacksOnBeat(TowerRhythm rhythm, int beat)
+        {
+            if (beat < 0) return false;
+            int phase = beat % 4;
+            return rhythm == TowerRhythm.EveryBeat || (rhythm == TowerRhythm.Downbeat && phase % 2 == 0)
+                || (rhythm == TowerRhythm.Offbeat && phase % 2 == 1) || (rhythm == TowerRhythm.FirstBeat && phase == 0);
+        }
+
         public void ClearLayout()
         {
             if (Beat >= 0) return;
-            towers.Clear(); Coins = 24; nextTowerId = 0;
+            towers.Clear(); Coins = startingCoins; nextTowerId = 0;
         }
 
         public void ApplyExampleLayout()
         {
             if (Beat >= 0) return;
             ClearLayout(); TryBuild(8, 2); TryBuild(5, 4); TryBuild(2, 2);
+        }
+
+        public int ApplyStartingTowers(IEnumerable<StartingTower> layout)
+        {
+            if (layout == null || Beat >= 0) return 0;
+            int placed = 0;
+            foreach (var entry in layout)
+            {
+                if (entry.Pitch < 0 || entry.Pitch > 7 || entry.Mode < TargetMode.All || entry.Mode > TargetMode.Skip) continue;
+                if (!TryBuild(entry.X, entry.Y)) continue;
+                SetFilter(towers[towers.Count - 1].Id, entry.Mode, entry.Pitch);
+                SetRhythm(towers[towers.Count - 1].Id, entry.Rhythm);
+                placed++;
+            }
+            return placed;
         }
 
         public BeatResult Step()
@@ -165,7 +218,9 @@ namespace TapTapGameJam.PianoDefense
             foreach (var enemy in enemies)
             {
                 // 装饰音怪（设计文档 §4.1）：速度 2 格/拍，从偶数列出生因此只经过偶数列。
-                enemy.PreviousX = enemy.X; enemy.X -= enemy.Speed;
+                enemy.PreviousX = enemy.X;
+                if (enemy.HoldBeats > 0) { enemy.HoldBeats--; continue; }
+                enemy.X -= enemy.Speed;
                 if (enemy.X < 0) { Hp = Math.Max(0, Hp - 1); Leaked++; result.Leaks.Add(enemy); }
             }
             enemies.RemoveAll(e => e.X < 0);
@@ -173,6 +228,7 @@ namespace TapTapGameJam.PianoDefense
 
             foreach (var tower in towers)
             {
+                if (!AttacksOnBeat(tower.Rhythm, Beat)) continue;
                 EnemyState target = null;
                 foreach (var enemy in enemies)
                 {
@@ -188,6 +244,13 @@ namespace TapTapGameJam.PianoDefense
                 result.Shots.Add(new ShotEvent { FromX = tower.X, FromY = tower.Y, ToX = target.X, ToY = target.Lane, Pitch = target.Pitch });
             }
             if (result.Notes.Count >= 2) Harmonies++;
+            int chordMask = 0;
+            foreach (var note in result.Notes) chordMask |= 1 << note.Pitch;
+            if ((chordMask & 21) == 21) // C, E, G must be distinct and share the audible beat.
+            {
+                result.Resonance = true; Resonances++; Coins += 3;
+                foreach (var enemy in enemies) enemy.HoldBeats = 1;
+            }
             if ((Beat + 1) % 16 == 0)
             {
                 result.PhraseProgress = MelodyProgress;

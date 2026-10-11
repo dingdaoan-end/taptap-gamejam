@@ -9,6 +9,7 @@ namespace TapTapGameJam.PianoDefense
         public bool Scheduled { get; private set; }
         public double NextTime { get; private set; }
         public double LastTime { get; private set; }
+        public double SecondsPerBeat { get; set; } = DefenseSimulation.SecondsPerBeat;
         public void Start(double now) { Running = true; Paused = false; Scheduled = false; NextTime = now + 0.2; LastTime = now; }
         public void Stop() { Running = false; Paused = false; Scheduled = false; }
         public void Pause() { if (!Running) return; Paused = true; Scheduled = false; }
@@ -22,7 +23,7 @@ namespace TapTapGameJam.PianoDefense
         public bool TryPresent(double now)
         {
             if (!Running || Paused || !Scheduled || now < NextTime) return false;
-            LastTime = NextTime; NextTime += DefenseSimulation.SecondsPerBeat; Scheduled = false;
+            LastTime = NextTime; NextTime += SecondsPerBeat; Scheduled = false;
             // Do not compress all missed beats into one audible burst after a window drag/stall.
             if (NextTime <= now + LookAhead) NextTime = now + 0.2;
             return true;
