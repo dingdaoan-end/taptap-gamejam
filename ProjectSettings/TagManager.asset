@@ -11,7 +11,7 @@ TagManager:
   - BuildSlot
   - Water
   - UI
-  - 
+  - Building
   - 
   - 
   - 
@@ -40,6 +40,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Building
+    uniqueID: 1466453291
     locked: 0
   - name: UI
     uniqueID: 2077519537
