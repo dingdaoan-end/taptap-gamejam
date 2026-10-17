@@ -4,15 +4,15 @@
 
 ## 运行钢琴塔防
 
-- 编辑器：团结引擎 **1.10.4 / 2022.3.62t16**。
-- 在这台电脑的团结 Hub 打开本项目后，编辑器会恢复 `Assets/Scenes/PianoDefense.unity`。点顶部的 Play 即可试玩；团队成员首次打开时可双击该场景，或使用菜单 **Tools → Game Jam → Open Piano Defense Prototype**。
+- 编辑器：标准 **Unity 2022.3.62f3**（通过 Unity Hub 打开）。本版本已恢复标准 Unity GUID 和资源引用；请保留并一起提交 `.meta` 文件，避免用团结引擎重新保存后再次改变资源格式。
+- 在 Unity Hub 打开本项目后，双击 `Assets/Scenes/PianoDefense.unity`。点顶部的 Play 即可试玩；团队成员首次打开时可双击该场景，或使用菜单 **Tools → Game Jam → Open Piano Defense Prototype**。
 - Windows 试玩：使用菜单 **Tools → Game Jam → Build Composition v0.3 for Windows** 构建，运行 `Builds/PianoDefense-v0.3/NocturnePiano.exe`。分享时打包整个 `PianoDefense-v0.3` 文件夹。
 - 四个乐章依次体验音符轨迹、交错节拍、三音共鸣和自由合奏。每关都有可直接演奏的示例布局；也可清空后自己布阵。
 - 点击深色空格建塔（8 币），点击琴塔选择“全部／独奏／跳过”和音高。`B` 切换建造，`Delete` 回收选中塔。
 - `空格`或 `Esc` 暂停／继续。切出游戏自动暂停。准备和结算时可点击钢琴键试听。
 - 结束后点击“聆听这一次战斗的乐章”，按原始节拍回放所有击杀音符。
 
-## 在团结编辑器中修改关卡
+## 在 Unity 编辑器中修改关卡
 
 1. 打开 `Assets/Scenes/PianoDefense.unity`，在 Hierarchy 展开 **Piano Defense → Editable Board**。`Tiles` 下的 84 个格子和 `Starting Towers` 下的琴塔都是真正的场景对象，Scene 和 Game 显示的是同一套棋盘。
 2. `Starting Towers` 内有四组乐章示例塔。移动、删除或复制对应组的琴塔；Transform 会吸附到格子。选中琴塔可在 Inspector 改音高、筛选、攻击节拍和所属乐章。查看其他组时可临时启用其对象。三条敌人通道仍是第 1、3、5 行。
@@ -88,6 +88,6 @@ GitHub 适合这个规模的 Game Jam。提交 `Assets/`、`Packages/`、`Projec
 
 镜头先完整展示四区约3秒，再移到左上区，精确框住25×13格；宽屏和4:3窗口均不露出邻区。整备或间奏时，可在任意空闲草地建造；石台只是推荐位置，道路、障碍、基地和已占用格不可建造。
 
-拉取工程后，用团结1.10.4打开项目并进入 `Assets/Scenes/MusicGarden.unity`。Windows构建菜单为 **Tools → Music Garden → Build Windows**，运行包输出到 `Builds/MusicGarden-v0.4/`。构建缓存与本地可执行文件不纳入源码提交。
+拉取工程后，用 Unity 2022.3.62f3 打开项目并进入 `Assets/Scenes/MusicGarden.unity`。Windows构建菜单为 **Tools → Music Garden → Build Windows**，运行包输出到 `Builds/MusicGarden-v0.4/`。构建缓存与本地可执行文件不纳入源码提交。
 
 新版核心测试：`dotnet run --project Tests/MusicGarden.CoreTests`。
