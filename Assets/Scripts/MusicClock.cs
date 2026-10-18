@@ -31,6 +31,8 @@ namespace TapTapGameJam.Music
         public bool IsPreparing => loading != null;
         public double SecondsPerBeat => timeline.SecondsPerBeat;
         public double CurrentBeat => timeline.BeatAt(AudioSettings.dspTime);
+        public int CurrentPhrase => MusicPhraseGrid.Index(CurrentBeat) + 1;
+        public double BeatInPhrase => MusicPhraseGrid.Offset(CurrentBeat);
         public int BeatsPerBar => activeBeatsPerBar;
         public int BeatsPerLoop => activeBeatsPerBar * activeBarsPerLoop;
         public double LoopBeat => CurrentBeat % BeatsPerLoop;

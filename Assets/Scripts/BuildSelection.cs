@@ -35,8 +35,18 @@ public class BuildSelection : MonoBehaviour
             return;
         }
 
+        // Editor/Game view resizing can leave mouse coordinates outside the camera.
+        // Clear hover without discarding the selected slot or clamping to an edge.
+        Vector3 mousePosition = Input.mousePosition;
+        if (worldCamera == null || !worldCamera.isActiveAndEnabled ||
+            !worldCamera.pixelRect.Contains(new Vector2(mousePosition.x, mousePosition.y)))
+        {
+            SetHovered(null);
+            return;
+        }
+
         // 把屏幕上的鼠标位置投影到地图所在的 XY 平面。
-        Ray ray = worldCamera.ScreenPointToRay(Input.mousePosition);
+        Ray ray = worldCamera.ScreenPointToRay(mousePosition);
         Plane mapPlane = new Plane(Vector3.forward, Vector3.zero);
 
         BuildSlot candidate = null;
@@ -62,7 +72,7 @@ public class BuildSelection : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (selected == null)
+        if (selected == null || worldCamera == null)
             return;
 
         // Overlay Canvas 使用屏幕坐标定位。

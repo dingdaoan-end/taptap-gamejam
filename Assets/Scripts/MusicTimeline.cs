@@ -2,6 +2,16 @@ using System;
 
 namespace TapTapGameJam.Music
 {
+    // Shared four-phrase arrangement, independent of individual tower activity.
+    public static class MusicPhraseGrid
+    {
+        public const int BeatsPerPhrase = 8;
+        public const int PhraseCount = 4;
+        public static int Index(double beat) => (int)(Math.Floor(Math.Max(0, beat) / BeatsPerPhrase) % PhraseCount);
+        public static double Offset(double beat) => Math.Max(0, beat) % BeatsPerPhrase;
+        public static double EndBeat(double beat) => (Math.Floor(Math.Max(0, beat) / BeatsPerPhrase) + 1) * BeatsPerPhrase;
+    }
+
     // Pure timing model: a frame stall never moves the musical origin.
     public sealed class MusicTimeline
     {

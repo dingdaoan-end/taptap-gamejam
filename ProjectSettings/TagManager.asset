@@ -12,7 +12,7 @@ TagManager:
   - Water
   - UI
   - Building
-  - 
+  - Enemy
   - 
   - 
   - 
@@ -40,6 +40,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Enemy
+    uniqueID: 4064182555
     locked: 0
   - name: Building
     uniqueID: 1466453291
