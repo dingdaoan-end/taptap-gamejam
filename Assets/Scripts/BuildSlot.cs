@@ -7,6 +7,15 @@ public class BuildSlot : MonoBehaviour
     [SerializeField] private GameObject existingTower;
 
     public bool Occupied => existingTower != null;
+    public bool GeneratedPlacement { get; private set; }
+    private BuildPlacementValidator placementValidator;
+    private BuildFootprint footprint;
+
+    public void ConfigurePlacement(BuildPlacementValidator validator, BuildFootprint site)
+    {
+        placementValidator = validator; footprint = site; GeneratedPlacement = true;
+        towerOrigin = transform; transform.position = site.Center;
+    }
 
     private void Awake()
     {
@@ -66,7 +75,7 @@ public class BuildSlot : MonoBehaviour
 
         // Destroy completes at the end of the frame; hide the tower immediately.
         existingTower.SetActive(false);
-        Destroy(existingTower);
+        if (Application.isPlaying) Destroy(existingTower); else DestroyImmediate(existingTower);
         existingTower = null;
         return true;
     }
@@ -76,9 +85,18 @@ public class BuildSlot : MonoBehaviour
         if (Occupied || prefab == null)
             return false;
 
+        if (placementValidator == null)
+            foreach (var validator in FindObjectsOfType<BuildPlacementValidator>())
+                if (validator.gameObject.scene == gameObject.scene) { placementValidator = validator; break; }
+        if (placementValidator == null) return false;
+        if (footprint.surface == null && !placementValidator.TryFootprintAtCenter(transform.position, out footprint)) return false;
+        var selection = placementValidator.GetComponent<BuildSelection>();
+        var camera = selection != null ? selection.WorldCamera : Camera.main;
+        if (!placementValidator.Validate(footprint, camera).Allowed) return false;
+
         existingTower = Instantiate(
             prefab,
-            towerOrigin.position,
+            footprint.Center,
             Quaternion.identity
         );
         BindTowerSection();

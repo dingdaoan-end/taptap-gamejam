@@ -24,10 +24,13 @@ namespace TapTapGameJam.Combat
 
         // Query the actual collider instead of relying on enter/exit callbacks:
         // this also handles initially overlapping, disabled and destroyed enemies.
-        private void FixedUpdate()
+        private void FixedUpdate() => RefreshTargets();
+
+        public void RefreshTargets()
         {
+            if (range == null) range = GetComponent<BoxCollider2D>();
             enemies.Clear();
-            if (range.enabled && range.isTrigger)
+            if (isActiveAndEnabled && range.enabled && range.isTrigger)
             {
                 var filter = new ContactFilter2D();
                 filter.SetLayerMask(enemyLayers);
@@ -38,6 +41,8 @@ namespace TapTapGameJam.Combat
                     var body = collider.attachedRigidbody;
                     if (body == null || !body.simulated || !body.gameObject.activeInHierarchy)
                         continue;
+                    var health = body.GetComponent<EnemyHealth>();
+                    if (health != null && !health.IsAlive) continue;
                     // Several colliders belonging to one enemy count as one target.
                     if (!enemies.Contains(body)) enemies.Add(body);
                 }

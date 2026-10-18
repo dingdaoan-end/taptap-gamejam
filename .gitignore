@@ -24,6 +24,7 @@ graybox-import.log
 /Tests/**/bin/
 !/Tests/PianoDefense.CoreTests/PianoDefense.CoreTests.csproj
 !/Tests/MusicGarden.CoreTests/MusicGarden.CoreTests.csproj
+!/Tests/BeatAttack.CoreTests/BeatAttack.CoreTests.csproj
 /Artifacts/
 
 # Keep Unity .meta files: they hold asset identities and references.

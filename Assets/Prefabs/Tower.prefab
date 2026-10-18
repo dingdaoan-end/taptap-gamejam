@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3712865402010889146}
   - component: {fileID: 7987912324992078283}
+  - component: {fileID: 5604894140688793284}
   m_Layer: 6
   m_Name: Tower
   m_TagString: Untagged
@@ -131,6 +132,30 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5604894140688793284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3778553821087354796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 325c8c7b24aeca94d914294a169d8382, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  clock: {fileID: 0}
+  detector: {fileID: 910170001}
+  patternBeats: 4
+  attackBeats:
+  - 0
+  - 1
+  - 2
+  - 3
+  damage: 1
+  maxLateSeconds: 0.12
+  firepoint: {fileID: 6541411809965513111}
+  attackColor: {r: 0.7, g: 1, b: 0.85, a: 1}
 --- !u!1 &3963221993310686416
 GameObject:
   m_ObjectHideFlags: 0
