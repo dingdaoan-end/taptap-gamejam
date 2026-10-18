@@ -6,21 +6,36 @@ namespace TapTapGameJam.Combat
     [RequireComponent(typeof(Rigidbody2D))]
     public sealed class EnemyPathMover : MonoBehaviour
     {
-        private EnemyTestRoute route;
+        [SerializeField] private EnemyTestRoute route;
         private Rigidbody2D body;
-        private MusicClock clock;
+        [SerializeField] private MusicClock clock;
+        [SerializeField, Min(0)] private float unitsPerBeat = 1;
         private EnemyAudioTestSpawner settings;
         private double lastBeat;
         private double distanceTravelled;
         private float activeSpeed;
-        private Vector2 spawnPosition;
+        private EnemyRoutePath path;
+        private EnemyWalkVisual visual;
+        public bool IsInitialized { get; private set; }
+        public bool HasArrived { get; private set; }
+        public double DistanceTravelled => distanceTravelled;
+        public Vector2 MoveDirection { get; private set; }
+
+        void Start()
+        {
+            if (!IsInitialized && route != null && clock != null && route.TryPrepare(out _))
+                Initialize(route, clock.CurrentBeat, clock, null, transform.position);
+        }
         public void Initialize(EnemyTestRoute path, double spawnBeat, MusicClock musicClock, EnemyAudioTestSpawner owner, Vector2 origin)
         {
             route = path;
-            // Snapshot per enemy: moving SpawnPoint must not move existing enemies.
-            spawnPosition = origin;
+            if (path == null || path.Count < 1 || musicClock == null) { IsInitialized = false; return; }
             settings = owner;
             clock = musicClock;
+            var points = new Vector2[path.Count];
+            for (int i = 0; i < points.Length; i++) points[i] = path.Point(i);
+            this.path = new EnemyRoutePath(origin, points);
+            visual = GetComponent<EnemyWalkVisual>();
             body = GetComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Kinematic;
             body.simulated = true;
@@ -28,46 +43,40 @@ namespace TapTapGameJam.Combat
             body.constraints = RigidbodyConstraints2D.FreezeRotation;
             // A delayed frame joins at the correct musical position instead of
             // permanently reducing the spacing between successive enemies.
-            activeSpeed = settings.UnitsPerBeat;
+            activeSpeed = settings != null ? settings.UnitsPerBeat : SafeOwnSpeed;
             lastBeat = clock.CurrentBeat;
             distanceTravelled = EnemyBeatTiming.Distance(lastBeat, spawnBeat) * activeSpeed;
-            body.position = PositionAt(distanceTravelled, out _);
+            body.position = this.path.Sample(distanceTravelled, out var direction, out _);
+            MoveDirection = direction; HasArrived = false; IsInitialized = true;
+            if (visual != null) visual.Present(direction, distanceTravelled, activeSpeed > 0);
         }
         private void FixedUpdate()
         {
-            if (route == null || body == null) return;
+            if (!isActiveAndEnabled || !IsInitialized || path == null || body == null) return;
             if (clock == null || !clock.IsRunning || clock.IsPaused) return;
             double beat = clock.CurrentBeat;
+            double elapsedBeats = beat - lastBeat;
+            if (elapsedBeats < 0) { lastBeat = beat; return; }
+            double previousDistance = distanceTravelled;
             distanceTravelled = EnemyBeatTiming.Advance(distanceTravelled, lastBeat, beat, activeSpeed);
             lastBeat = beat;
-            if (settings != null) activeSpeed = settings.UnitsPerBeat;
-            Vector2 position = PositionAt(distanceTravelled, out bool arrived);
+            activeSpeed = settings != null ? settings.UnitsPerBeat : SafeOwnSpeed;
+            Vector2 position = path.Sample(distanceTravelled, out var direction, out bool arrived);
+            MoveDirection = direction;
             if (arrived)
             {
+                body.position = position; HasArrived = true; IsInitialized = false; MoveDirection = Vector2.zero;
+                if (settings != null) settings.NotifyArrival(this);
                 gameObject.SetActive(false);
-                Destroy(gameObject);
+                if (Application.isPlaying) Destroy(gameObject);
                 return;
             }
-            body.MovePosition(position);
+            // A DSP hitch can jump across many road segments. MovePosition has a
+            // physics speed cap; recover directly instead of drifting off rhythm.
+            if (elapsedBeats > .5) body.position = position; else body.MovePosition(position);
+            if (visual != null) visual.Present(direction, distanceTravelled, distanceTravelled > previousDistance + .000001);
         }
 
-        private Vector2 PositionAt(double distance, out bool arrived)
-        {
-            Vector2 position = spawnPosition;
-            for (int i = 0; i < route.Count; i++)
-            {
-                Vector2 target = route.Point(i);
-                float length = Vector2.Distance(position, target);
-                if (distance < length)
-                {
-                    arrived = false;
-                    return Vector2.MoveTowards(position, target, (float)distance);
-                }
-                position = target;
-                distance -= length;
-            }
-            arrived = true;
-            return position;
-        }
+        private float SafeOwnSpeed => float.IsNaN(unitsPerBeat) || float.IsInfinity(unitsPerBeat) ? 1 : Mathf.Max(0, unitsPerBeat);
     }
 }

@@ -96,6 +96,8 @@ GameObject:
   - component: {fileID: 797394624359002371}
   - component: {fileID: 9117576610786207325}
   - component: {fileID: 8919108056297185984}
+  - component: {fileID: 2933722517035865188}
+  - component: {fileID: 4082594411435115480}
   m_Layer: 7
   m_Name: Enemy
   m_TagString: Untagged
@@ -204,3 +206,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+--- !u!114 &2933722517035865188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7066893076875323972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec2d3db005344d63aab65c2a3ace98cd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  route: {fileID: 0}
+  clock: {fileID: 0}
+  unitsPerBeat: 1
+--- !u!114 &4082594411435115480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7066893076875323972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 644c48d03972fd043b4240a1c14e5438, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  sprite: {fileID: 7062997735512936627}
+  artworkFacesRight: 0
+  bobHeight: 0.045
+  strideDistance: 0.65
+  swayDegrees: 2

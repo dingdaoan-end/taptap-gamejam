@@ -23,10 +23,16 @@ namespace TapTapGameJam.Combat
         private int activeInterval;
         private double lastBirthBeat;
         private bool hasSpawned;
+        private bool warnedInvalidRoad;
+        [SerializeField] private int arrivedCount;
+        public int ArrivedCount => arrivedCount;
+        public int LivingCount => livingEnemies.Count;
 
         private void Start()
         {
             if (spawnPoint == null) spawnPoint = transform.Find("SpawnPoint");
+            if (route != null && !route.TryPrepare(out string routeError))
+            { Debug.LogError("Enemy route is invalid: " + routeError, this); enabled = false; return; }
             if (enemyPrefab == null || spawnPoint == null || route == null || route.Count < 1)
             {
                 Debug.LogError("Assign Enemy Prefab, Spawn Point and a route with at least one waypoint.", this);
@@ -69,6 +75,16 @@ namespace TapTapGameJam.Combat
             }
             // Beat zero is held during the clock's scheduled startup lead-in.
             if (AudioSettings.dspTime < clock.GetDspTimeForBeat(nextBirthBeat)) return;
+            // Recheck once per due batch so edited entries/goals/roads affect only
+            // future enemies. Existing enemies keep their own geometry snapshot.
+            if (!route.TryPrepare(out string routeError))
+            {
+                if (!warnedInvalidRoad) Debug.LogWarning("Enemy birth skipped: " + routeError, this);
+                warnedInvalidRoad = true;
+                nextBirthBeat = EnemyBeatTiming.FirstBirth(clock.CurrentBeat + .000001, activeInterval);
+                return;
+            }
+            warnedInvalidRoad = false;
             livingEnemies.RemoveAll(enemy => enemy == null);
             // Skip enemies that would already have reached the end after a stall.
             double routeLength = Vector2.Distance(spawnPoint.position, route.Point(0));
@@ -96,6 +112,11 @@ namespace TapTapGameJam.Combat
             livingEnemy.SetActive(true);
             livingEnemies.Add(livingEnemy);
         }
+        public void NotifyArrival(EnemyPathMover enemy)
+        {
+            if (enemy == null || !enemy.HasArrived || !livingEnemies.Remove(enemy.gameObject)) return;
+            arrivedCount++;
+        }
         private void OnTransportChanged()
         {
             // Pause/resume retains birth beats. Stop/restart starts a new wave.
@@ -108,6 +129,8 @@ namespace TapTapGameJam.Combat
             livingEnemies.Clear();
             scheduleReady = false;
             hasSpawned = false;
+            arrivedCount = 0;
+            warnedInvalidRoad = false;
         }
         private void OnDisable()
         {
