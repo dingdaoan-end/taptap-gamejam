@@ -8,6 +8,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1115437853004763455, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1115437853004763455, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1115437853004763455, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1115437853004763455, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3712865402010889146, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -55,7 +71,7 @@ PrefabInstance:
     - target: {fileID: 3780537913323708645, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 96ad664d87f2f48b7babf2f621531ae5, type: 3}
+      objectReference: {fileID: 21300000, guid: 4a81b02ae6703ee44b6052be76a0c1f5, type: 3}
     - target: {fileID: 7987912324992078283, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
       propertyPath: m_audioClip
       value: 
