@@ -131,6 +131,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7855275335896616815, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1261264992886948589}
+    - targetCorrespondingSourceObject: {fileID: 3778553821087354796, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 910390001}
   m_SourcePrefab: {fileID: 100100000, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
 --- !u!1 &2226039786134602765 stripped
 GameObject:
@@ -158,3 +161,37 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &5158854159682405582 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3778553821087354796, guid: 044819d5ad4102142b0e0792ee65f213, type: 3}
+  m_PrefabInstance: {fileID: 8351908091749583714}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &910390001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5158854159682405582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdec1d8a22414ab6a05af321ace3bfab, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  clock: {fileID: 0}
+  detector: {fileID: 0}
+  audioSettings: {fileID: 0}
+  variants:
+  - name: LV3_Duduk_1
+    segments:
+    - {fileID: 8300000, guid: 3415879b401043788e06c4bf029edc60, type: 3}
+    - {fileID: 8300000, guid: 1595a2d98f0748eda6e42813daad9be3, type: 3}
+    - {fileID: 8300000, guid: 559f4f0dd29740149c85671748cbd667, type: 3}
+    - {fileID: 8300000, guid: 365dcb3e625b488093ca00030ae0c274, type: 3}
+  - name: LV3_Duduk_2
+    segments:
+    - {fileID: 8300000, guid: a1da6982c8a245e2bcd1f0f7acc542dd, type: 3}
+    - {fileID: 8300000, guid: 41e0f8d49f444edd95839e6055ec247a, type: 3}
+    - {fileID: 8300000, guid: 8364a732a7d2414298898e5bd6471110, type: 3}
+    - {fileID: 8300000, guid: 7e04b2e1bd2441e7b367de58c7c20245, type: 3}
+    - {fileID: 8300000, guid: c5427e17d0b64d3b98b874bf271fabde, type: 3}

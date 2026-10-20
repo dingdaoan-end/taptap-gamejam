@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq;
 using TapTapGameJam.Combat;
 using TapTapGameJam.Music;
@@ -5,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 namespace TapTapGameJam.UI
 {
@@ -19,11 +21,11 @@ namespace TapTapGameJam.UI
         public MusicClock clock;
         public EnemyAudioTestSpawner[] spawners;
         public Button startBattleButton;
-        public GameObject battleControlsRoot;
-        public Button pauseButton;
+        [FormerlySerializedAs("battleControlsRoot")] public GameObject pauseMenuRoot;
         public Button restartButton;
         public Button skipLevelButton;
-        public TMP_Text pauseLabel;
+        public Button quitButton;
+        [SerializeField] AudioSource menuClickSound;
         public GameObject resultRoot;
         [SerializeField] Button retryButton;
         [SerializeField] Button nextLevelButton;
@@ -37,6 +39,9 @@ namespace TapTapGameJam.UI
         public GameObject bellPrefab;
         public GameObject chordPrefab;
         public GameObject dudukPrefab;
+        [Header("Level 3 and 4 prefab variants")]
+        public GameObject level3BellPrefab;
+        public GameObject level3ChordPrefab;
         [SerializeField, Min(0)] int firstLevelTowerLimit = 3;
         const int MaximumTowerLimit = 6;
         int highestClearedLevel;
@@ -58,6 +63,9 @@ namespace TapTapGameJam.UI
         float timeScaleBeforePause = 1;
         bool ownsPause;
         Phase phaseBeforePause = Phase.Preparation;
+        bool dialogueVisibleBeforePause, resultVisibleBeforePause, clockPausedBeforePause, quitting;
+        string waveTextBeforePause;
+        GameObject selectionBeforePause;
         int lastSkipFrame = -1;
         Camera movingCamera;
         Vector3 cameraMoveStart, cameraMoveTarget;
@@ -78,8 +86,9 @@ namespace TapTapGameJam.UI
             if (resultRoot != null) resultRoot.SetActive(false);
             if (transitionRoot != null) transitionRoot.SetActive(false);
             startBattleButton.gameObject.SetActive(false);
-            if (battleControlsRoot != null) battleControlsRoot.SetActive(false);
+            if (pauseMenuRoot != null) pauseMenuRoot.SetActive(false);
             selection.SetUnlockedPrefabs(new[] { bellPrefab });
+            UpdateTowerVariants();
             RefreshBaseHealth();
             RefreshTowerCapacity();
         }
@@ -88,9 +97,9 @@ namespace TapTapGameJam.UI
             if (dialogue != null) dialogue.PlayingChanged += OnDialoguePlayingChanged;
             OnDialoguePlayingChanged(dialogue != null && dialogue.IsPlaying);
             if (startBattleButton != null) startBattleButton.onClick.AddListener(StartBattle);
-            if (pauseButton != null) pauseButton.onClick.AddListener(TogglePause);
             if (restartButton != null) restartButton.onClick.AddListener(RestartCurrentLevel);
             if (skipLevelButton != null) skipLevelButton.onClick.AddListener(SkipCurrentLevel);
+            if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
             if (RetryButton != null) RetryButton.onClick.AddListener(RestartCurrentLevel);
             if (NextLevelButton != null) NextLevelButton.onClick.AddListener(NextLevel);
             if (replayLevelButton != null) replayLevelButton.onClick.AddListener(RestartCurrentLevel);
@@ -100,6 +109,7 @@ namespace TapTapGameJam.UI
         }
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Escape)) TogglePause();
             if (CurrentPhase == Phase.Transition) UpdateCameraTransition();
             // If audio finished loading while paused, pause its transport as well.
             if (CurrentPhase == Phase.Paused && clock != null && clock.IsRunning && !clock.IsPaused)
@@ -114,11 +124,11 @@ namespace TapTapGameJam.UI
 
         void RefreshBattleControls()
         {
-            bool available = IsPlayablePhase || CurrentPhase == Phase.Paused;
-            if (battleControlsRoot != null) battleControlsRoot.SetActive(available);
-            if (pauseButton != null) pauseButton.interactable = available;
-            if (restartButton != null) restartButton.interactable = available;
-            if (skipLevelButton != null) skipLevelButton.interactable = CanSkipCurrentLevel();
+            bool paused = CurrentPhase == Phase.Paused;
+            if (pauseMenuRoot != null) pauseMenuRoot.SetActive(paused);
+            if (restartButton != null) restartButton.interactable = paused && phaseBeforePause != Phase.Transition && !quitting;
+            if (skipLevelButton != null) skipLevelButton.interactable = paused && CanSkipCurrentLevel() && !quitting;
+            if (quitButton != null) quitButton.interactable = paused && !quitting;
             if (startBattleButton != null) startBattleButton.gameObject.SetActive(CurrentPhase == Phase.Preparation);
         }
 
@@ -162,8 +172,6 @@ namespace TapTapGameJam.UI
             if (!isActiveAndEnabled || CurrentPhase != Phase.Preparation || clock == null) return;
             CurrentPhase = Phase.Battle;
             LevelWon = false;
-            if (battleControlsRoot != null) battleControlsRoot.SetActive(true);
-            if (pauseLabel != null) pauseLabel.text = "暂停";
             RefreshBattleControls();
             startBattleButton.gameObject.SetActive(false);
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
@@ -175,34 +183,48 @@ namespace TapTapGameJam.UI
         }
         public void TogglePause()
         {
-            if (!isActiveAndEnabled) return;
-            if (IsPlayablePhase)
+            if (!isActiveAndEnabled || quitting) return;
+            if (CurrentPhase != Phase.Paused)
             {
                 phaseBeforePause = CurrentPhase;
+                waveTextBeforePause = waveText.text;
+                selectionBeforePause = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+                dialogueVisibleBeforePause = dialogue != null && dialogue.panel != null && dialogue.panel.activeSelf;
+                resultVisibleBeforePause = resultRoot != null && resultRoot.activeSelf;
+                if (dialogueVisibleBeforePause) dialogue.panel.SetActive(false);
+                if (resultVisibleBeforePause) resultRoot.SetActive(false);
+                clockPausedBeforePause = clock != null && clock.IsPaused;
                 CurrentPhase = Phase.Paused;
                 selection.SetInteractionAllowed(false);
                 if (clock != null) clock.PausePlayback();
                 timeScaleBeforePause = Time.timeScale;
                 ownsPause = true;
                 Time.timeScale = 0;
-                if (pauseLabel != null) pauseLabel.text = "继续";
                 waveText.text = "已暂停";
+                if (pauseMenuRoot != null) pauseMenuRoot.transform.SetAsLastSibling();
             }
             else if (CurrentPhase == Phase.Paused)
             {
                 RestoreTimeScale();
-                if (clock != null) clock.EnsurePlayback();
+                if (clock != null && !clockPausedBeforePause) clock.EnsurePlayback();
                 CurrentPhase = phaseBeforePause;
-                selection.SetInteractionAllowed(true);
-                if (pauseLabel != null) pauseLabel.text = "暂停";
-                waveText.text = CurrentPhase == Phase.Preparation ? "建造准备" : "战斗中";
+                selection.SetInteractionAllowed(IsPlayablePhase);
+                if (dialogueVisibleBeforePause && dialogue != null && dialogue.IsPlaying) dialogue.panel.SetActive(true);
+                if (resultVisibleBeforePause && resultRoot != null) resultRoot.SetActive(true);
+                waveText.text = waveTextBeforePause;
             }
             RefreshBattleControls();
-            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+            if (EventSystem.current != null)
+                EventSystem.current.SetSelectedGameObject(CurrentPhase == Phase.Paused
+                    ? (restartButton != null && restartButton.interactable ? restartButton.gameObject : quitButton?.gameObject)
+                    : (selectionBeforePause != null && selectionBeforePause.activeInHierarchy ? selectionBeforePause : null));
         }
         public void RestartCurrentLevel()
         {
-            if (!isActiveAndEnabled || (!IsPlayablePhase && CurrentPhase != Phase.Paused && CurrentPhase != Phase.Result)) return;
+            if (!isActiveAndEnabled || quitting || (CurrentPhase == Phase.Paused && phaseBeforePause == Phase.Transition) ||
+                (!IsPlayablePhase && CurrentPhase != Phase.Paused && CurrentPhase != Phase.Result)) return;
+            PlayMenuClick();
+            if (dialogue != null) dialogue.Cancel();
             CurrentPhase = Phase.Preparation;
             ResetBattleState();
             EnterPreparation();
@@ -228,7 +250,6 @@ namespace TapTapGameJam.UI
                 clock.EnsurePlayback();
             }
             LevelWon = false;
-            if (pauseLabel != null) pauseLabel.text = "暂停";
             baseHealth.Reset();
             RefreshBaseHealth();
             if (resultRoot != null) resultRoot.SetActive(false);
@@ -251,8 +272,9 @@ namespace TapTapGameJam.UI
             ownsPause = false;
         }
 
-        void OnEnemyArrived()
+        void OnEnemyArrived(EnemyPathMover enemy)
         {
+            if (enemy == null || !enemy.DamagesBaseOnArrival) return;
             if (CurrentPhase != Phase.Battle || !baseHealth.LoseLife()) return;
             RefreshBaseHealth();
             if (!baseHealth.IsDefeated) return;
@@ -267,7 +289,7 @@ namespace TapTapGameJam.UI
             if (won) RecordLevelCompletion();
             selection.SetInteractionAllowed(false);
             SetSpawners(false);
-            if (battleControlsRoot != null) battleControlsRoot.SetActive(false);
+            if (pauseMenuRoot != null) pauseMenuRoot.SetActive(false);
             startBattleButton.gameObject.SetActive(false);
             waveText.text = won ? "本关已通关" : "基地已被攻破";
             if (RetryButton != null) RetryButton.gameObject.SetActive(!won);
@@ -299,7 +321,8 @@ namespace TapTapGameJam.UI
 
         bool CanSkipCurrentLevel()
         {
-            return isActiveAndEnabled && (IsPlayablePhase || CurrentPhase == Phase.Paused) &&
+            return isActiveAndEnabled && !quitting && (IsPlayablePhase ||
+                (CurrentPhase == Phase.Paused && phaseBeforePause != Phase.Transition)) &&
                 CurrentLevel < 4 && allSpawners != null &&
                 allSpawners.Any(s => s != null && s.Level == CurrentLevel + 1);
         }
@@ -307,6 +330,8 @@ namespace TapTapGameJam.UI
         public void SkipCurrentLevel()
         {
             if (!CanSkipCurrentLevel() || lastSkipFrame == Time.frameCount) return;
+            PlayMenuClick();
+            if (dialogue != null) dialogue.Cancel();
             lastSkipFrame = Time.frameCount;
             int next = CurrentLevel + 1;
             var nextSpawners = allSpawners.Where(s => s != null && s.Level == next).ToArray();
@@ -340,6 +365,7 @@ namespace TapTapGameJam.UI
             RefreshBattleControls();
             ResetBattleState();
             CurrentLevel = level;
+            UpdateTowerVariants();
             RefreshTowerCapacity();
             if (clock != null) clock.SetLevel(CurrentLevel);
             spawners = nextSpawners;
@@ -348,6 +374,38 @@ namespace TapTapGameJam.UI
             selection.SetUnlockedPrefabs(level == 2 ? new[] { bellPrefab, chordPrefab } : new[] { bellPrefab, chordPrefab, dudukPrefab });
             waveText.text = "前往下一关";
             BeginCameraTransition();
+        }
+
+        void UpdateTowerVariants()
+        {
+            selection.SetPrefabReplacement(bellPrefab, CurrentLevel >= 3 ? level3BellPrefab : null);
+            selection.SetPrefabReplacement(chordPrefab, CurrentLevel >= 3 ? level3ChordPrefab : null);
+        }
+
+        void PlayMenuClick()
+        {
+            if (menuClickSound != null && menuClickSound.clip != null) menuClickSound.Play();
+        }
+
+        public void QuitGame()
+        {
+            if (!isActiveAndEnabled || quitting || CurrentPhase != Phase.Paused) return;
+            StartCoroutine(QuitAfterClick());
+        }
+
+        IEnumerator QuitAfterClick()
+        {
+            quitting = true;
+            RefreshBattleControls();
+            PlayMenuClick();
+            if (menuClickSound != null && menuClickSound.clip != null)
+                yield return new WaitForSecondsRealtime(menuClickSound.clip.length / Mathf.Max(.01f, Mathf.Abs(menuClickSound.pitch)) + .03f);
+            RestoreTimeScale();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.ExitPlaymode();
+#else
+            Application.Quit();
+#endif
         }
 
         void BeginCameraTransition()
@@ -437,9 +495,9 @@ namespace TapTapGameJam.UI
         void OnDisable()
         {
             if (startBattleButton != null) startBattleButton.onClick.RemoveListener(StartBattle);
-            if (pauseButton != null) pauseButton.onClick.RemoveListener(TogglePause);
             if (restartButton != null) restartButton.onClick.RemoveListener(RestartCurrentLevel);
             if (skipLevelButton != null) skipLevelButton.onClick.RemoveListener(SkipCurrentLevel);
+            if (quitButton != null) quitButton.onClick.RemoveListener(QuitGame);
             if (RetryButton != null) RetryButton.onClick.RemoveListener(RestartCurrentLevel);
             if (NextLevelButton != null) NextLevelButton.onClick.RemoveListener(NextLevel);
             if (replayLevelButton != null) replayLevelButton.onClick.RemoveListener(RestartCurrentLevel);
@@ -447,7 +505,7 @@ namespace TapTapGameJam.UI
                 foreach (var spawner in allSpawners)
                     if (spawner != null) spawner.EnemyArrived -= OnEnemyArrived;
             RestoreTimeScale();
-            if (battleControlsRoot != null) battleControlsRoot.SetActive(false);
+            if (pauseMenuRoot != null) pauseMenuRoot.SetActive(false);
             if (selection != null) selection.SetInteractionAllowed(false);
             if (dialogue != null)
             {

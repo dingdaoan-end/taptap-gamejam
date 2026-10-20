@@ -31,10 +31,9 @@ public static class EnemyMovementSetup
         var root = PrefabUtility.LoadPrefabContents(path);
         try
         {
-            if (root.GetComponent<EnemyPathMover>() == null) root.AddComponent<EnemyPathMover>();
-            var visual = root.GetComponent<EnemyWalkVisual>();
-            if (visual == null) visual = root.AddComponent<EnemyWalkVisual>();
-            var fields = new SerializedObject(visual);
+            var mover = root.GetComponent<EnemyPathMover>();
+            if (mover == null) mover = root.AddComponent<EnemyPathMover>();
+            var fields = new SerializedObject(mover);
             fields.FindProperty("sprite").objectReferenceValue = root.GetComponentInChildren<SpriteRenderer>(true);
             fields.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(root, path);

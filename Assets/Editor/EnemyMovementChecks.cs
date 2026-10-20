@@ -30,6 +30,81 @@ public static class EnemyMovementChecks
         Beat(beat); Invoke(mover, "FixedUpdate"); Physics2D.SyncTransforms(); Physics2D.Simulate(.02f);
     }
     static void Near(Vector2 want, Vector2 got, string message) => Expect(Vector2.Distance(want, got) < .025f, message + " at " + got);
+
+    [MenuItem("Tools/Enemies/Check Spawn Facing")]
+    public static void RunFacingChecks()
+    {
+        if (Application.isPlaying) throw new InvalidOperationException("Exit Play mode before running the check.");
+        foreach (string name in new[] { "Enemy", "Enemy_Red", "Enemy_Blue", "Enemy_Yellow", "Enemy_Boss", "Enemy_All" })
+        {
+            var root = PrefabUtility.LoadPrefabContents("Assets/Prefabs/" + name + ".prefab");
+            GameObject fixture = null;
+            try
+            {
+                Expect(root.GetComponentsInChildren<Component>(true).All(c => c != null), name + " has no missing scripts");
+                var moving = root.GetComponent<EnemyPathMover>();
+                var sprite = root.transform.Find("EnemyVisual").GetComponent<SpriteRenderer>();
+                var fields = new SerializedObject(moving);
+                Expect(fields.FindProperty("sprite").objectReferenceValue == sprite &&
+                    !fields.FindProperty("artworkFacesRight").boolValue, name + " inherits the migrated sprite and artwork facing");
+                var scale = sprite.transform.localScale;
+                var position = sprite.transform.localPosition;
+                var rotation = sprite.transform.localRotation;
+                // Keep all fixtures in the temporary prefab scene; never save it.
+                fixture = new GameObject("Facing check fixture");
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(fixture, root.scene);
+                var music = fixture.AddComponent<MusicClock>();
+                var transport = (MusicTimeline)typeof(MusicClock).GetField("timeline", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(music);
+                var source = fixture.AddComponent<EnemyAudioTestSpawner>();
+                source.unitsPerBeat = 1;
+                var sourceFields = new SerializedObject(source);
+                var pathObject = new GameObject("Route"); pathObject.transform.SetParent(fixture.transform, false);
+                foreach (var point in new[] { Vector2.zero, Vector2.right * 2, new Vector2(2, 10) })
+                {
+                    var waypoint = new GameObject("Waypoint");
+                    waypoint.transform.SetParent(pathObject.transform, false); waypoint.transform.position = point;
+                }
+                var path = pathObject.AddComponent<EnemyTestRoute>();
+                Expect(path.TryPrepare(out _), "facing check route is valid");
+                foreach (bool artFacesRight in new[] { false, true })
+                {
+                    fields.FindProperty("artworkFacesRight").boolValue = artFacesRight;
+                    fields.ApplyModifiedPropertiesWithoutUndo();
+                    for (int level = 1; level <= 4; level++)
+                    {
+                        sourceFields.FindProperty("level").intValue = level;
+                        sourceFields.ApplyModifiedPropertiesWithoutUndo();
+                        transport.Start(AudioSettings.dspTime, 100);
+                        moving.Initialize(path, music.CurrentBeat, music, source, Vector2.zero);
+                        bool expectedFlip = artFacesRight ? level == 2 || level == 3 : level == 1 || level == 4;
+                        Expect(sprite.flipX == expectedFlip, name + " initialization sets level " + level + " facing");
+                        transport.Start(AudioSettings.dspTime - 3 * .6, 100);
+                        Invoke(moving, "FixedUpdate");
+                        Expect(moving.MoveDirection.y > .9f && sprite.flipX == expectedFlip,
+                            name + " preserves facing after a route corner");
+                    }
+                }
+                Expect(sprite.transform.localPosition == position && sprite.transform.localRotation == rotation &&
+                    sprite.transform.localScale == scale, name + " preserves the artwork transform");
+                fields.Update();
+                fields.FindProperty("artworkFacesRight").boolValue = false;
+                fields.FindProperty("sprite").objectReferenceValue = null;
+                fields.ApplyModifiedPropertiesWithoutUndo();
+                moving.SetSpawnFacing(1); fields.Update();
+                Expect(fields.FindProperty("sprite").objectReferenceValue == sprite && sprite.flipX,
+                    name + " recovers an unassigned sprite reference");
+            }
+            finally
+            {
+                if (fixture != null) UnityEngine.Object.DestroyImmediate(fixture);
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+        System.IO.Directory.CreateDirectory("Artifacts/EnemyFacing");
+        System.IO.File.WriteAllText("Artifacts/EnemyFacing/check.txt", "ENEMY_FACING_CHECK_PASS: six prefabs, four levels, both artwork directions, route corners, transform preservation, sprite fallback.");
+        Debug.Log("ENEMY_FACING_CHECK_PASS");
+    }
+
     static void Fixture(Vector2[] points = null, double tempo = 100, double birth = .25)
     {
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single); bpm = tempo;
@@ -93,13 +168,13 @@ public static class EnemyMovementChecks
         Invoke(mover, "FixedUpdate"); owner.NotifyArrival(mover); Expect(owner.ArrivedCount == 1, "duplicate arrival cannot be counted twice");
         Fixture(); var health = mover.GetComponent<EnemyHealth>(); health.TakeDamage(health.MaxHealth);
         Step(5.25); Expect(owner.ArrivedCount == 0 && mover.DistanceTravelled < .1, "killed enemy stops moving and cannot arrive");
-        Fixture(); var sprite = mover.transform.Find("EnemyVisual").GetComponent<SpriteRenderer>(); var walker = mover.GetComponent<EnemyWalkVisual>();
+        Fixture(); var sprite = mover.transform.Find("EnemyVisual").GetComponent<SpriteRenderer>();
         var scale = sprite.transform.localScale;
         var position = sprite.transform.localPosition;
         var rotation = sprite.transform.localRotation;
         for (int level = 1; level <= 4; level++)
         {
-            walker.SetSpawnFacing(level);
+            mover.SetSpawnFacing(level);
             bool expectedFlip = level == 1 || level == 4;
             Expect(sprite.flipX == expectedFlip, "level " + level + " sets spawn facing");
             Step(.25 + level * .25);
@@ -132,7 +207,9 @@ public static class EnemyMovementChecks
     {
         EditorSceneManager.OpenScene("Assets/Scenes/Map.unity", OpenSceneMode.Single);
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy.prefab");
-        Expect(prefab.GetComponent<EnemyPathMover>() != null && prefab.GetComponent<EnemyWalkVisual>() != null && prefab.GetComponent<EnemyHealth>() != null, "real Minion prefab includes movement, presentation and combat health");
+        Expect(prefab.GetComponent<EnemyPathMover>() != null && prefab.GetComponent<EnemyHealth>() != null, "real Minion prefab includes movement and combat health");
+        Expect(new SerializedObject(prefab.GetComponent<EnemyPathMover>()).FindProperty("sprite").objectReferenceValue ==
+            prefab.transform.Find("EnemyVisual").GetComponent<SpriteRenderer>(), "movement owns the enemy sprite binding");
         Expect(AssetDatabase.GetAssetPath(prefab.GetComponentInChildren<SpriteRenderer>().sprite) == "Assets/Sprites/Enemy/Minion.PNG", "latest GitHub Minion art retained");
         var spawners = UnityEngine.Object.FindObjectsOfType<EnemyAudioTestSpawner>();
         Expect(spawners.Length == 9, "all road branches have editable entry routes, including shared entrances");

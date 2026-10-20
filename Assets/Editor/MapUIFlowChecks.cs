@@ -78,7 +78,7 @@ public static class MapUIFlowChecks
                     Expect(player.content.font.HasCharacters(player.content.text), "Chinese glyphs resolve");
                     var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Dialogue/DialogueChinese.asset");
                     Expect(canvas.Find("BuildMenu").GetComponentsInChildren<TMP_Text>(true).All(t => t.font == font && t.fontSharedMaterial == font.material), "all four build menu fonts and materials unified");
-                    Expect(!flow.battleControlsRoot.activeSelf, "battle controls hidden during dialogue");
+                    Expect(!flow.pauseMenuRoot.activeSelf, "battle controls hidden during dialogue");
                     player.nextButton.onClick.Invoke(); player.nextButton.onClick.Invoke();
                     Expect(player.LineIndex == 1 && player.IsPlaying, "same-frame double click advances once");
                     step++; break;
@@ -95,15 +95,15 @@ public static class MapUIFlowChecks
                     Expect(flow.selection.InteractionAllowed && flow.startBattleButton.gameObject.activeSelf, "build controls available");
                     if (!flow.clock.IsRunning) return;
                     Expect(!flow.clock.IsPaused && flow.spawners.All(s => !s.enabled), "drum continues during preparation without enemies");
-                    Expect(flow.battleControlsRoot.activeSelf && flow.pauseButton.interactable && flow.skipLevelButton.interactable,
-                        "preparation exposes usable pause and skip buttons");
-                    flow.pauseButton.onClick.Invoke();
+                    Expect(!flow.pauseMenuRoot.activeSelf,
+                        "preparation keeps the Esc menu hidden");
+                    flow.TogglePause();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Paused && Time.timeScale == 0 && flow.clock.IsPaused &&
                         !flow.startBattleButton.gameObject.activeSelf, "preparation can pause without allowing battle start");
                     flow.startBattleButton.onClick.Invoke();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Paused && flow.spawners.All(s => !s.enabled),
                         "paused preparation rejects direct start calls");
-                    flow.pauseButton.onClick.Invoke();
+                    flow.TogglePause();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Preparation && Time.timeScale == 1 && !flow.clock.IsPaused &&
                         flow.startBattleButton.gameObject.activeSelf && flow.spawners.All(s => !s.enabled),
                         "resume returns to preparation without spawning enemies");
@@ -140,11 +140,11 @@ public static class MapUIFlowChecks
                     Expect(!flow.startBattleButton.gameObject.activeSelf, "start hidden in battle");
                     Expect(flow.spawners.Length == 1 && flow.spawners[0].LivingCount > 0, "only authored first entry starts spawning");
                     Expect(UnityEngine.Object.FindObjectsOfType<EnemyAudioTestSpawner>(true).Count(s => s.enabled) == 1, "other routes remain disabled");
-                    Expect(flow.battleControlsRoot.activeInHierarchy && flow.pauseButton.gameObject.activeInHierarchy && flow.restartButton.gameObject.activeInHierarchy, "battle buttons visible");
-                    flow.pauseButton.onClick.Invoke();
+                    Expect(!flow.pauseMenuRoot.activeInHierarchy, "battle keeps the Esc menu hidden");
+                    flow.TogglePause();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Paused && flow.clock.IsPaused && Time.timeScale == 0, "pause freezes DSP and game time");
                     Expect(!flow.selection.InteractionAllowed && !flow.selection.TryBuildSelected(flow.bellPrefab), "pause blocks map actions");
-                    Expect(flow.pauseLabel.text == "继续", "pause button becomes continue");
+                    Expect(flow.pauseMenuRoot.activeSelf && flow.restartButton.interactable && flow.quitButton.interactable, "pause exposes menu actions");
                     pausedBeat = flow.clock.CurrentBeat; pausedAt = EditorApplication.timeSinceStartup;
                     pausedCount = flow.spawners[0].LivingCount;
                     pausedEnemy = UnityEngine.Object.FindObjectOfType<EnemyPathMover>(); pausedPosition = pausedEnemy.transform.position;
@@ -154,7 +154,7 @@ public static class MapUIFlowChecks
                 case 4:
                     if (EditorApplication.timeSinceStartup - pausedAt < .7) return;
                     Expect(Math.Abs(flow.clock.CurrentBeat - pausedBeat) < .00001 && pausedEnemy.transform.position == pausedPosition && flow.spawners[0].LivingCount == pausedCount, "pause retains enemies and freezes beat and movement across real time");
-                    flow.pauseButton.onClick.Invoke();
+                    flow.TogglePause();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Battle && !flow.clock.IsPaused && Time.timeScale == 1 && flow.selection.InteractionAllowed, "resume restores clock and interaction");
                     pausedAt = EditorApplication.timeSinceStartup;
                     step++; break;
@@ -164,7 +164,7 @@ public static class MapUIFlowChecks
                     clockRevision = flow.clock.Revision;
                     flow.restartButton.onClick.Invoke();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Preparation && flow.clock.IsRunning && flow.clock.Revision == clockRevision && flow.spawners.All(s => !s.enabled && s.LivingCount == 0), "restart clears enemies while retaining drum transport");
-                    Expect(flow.startBattleButton.gameObject.activeSelf && flow.battleControlsRoot.activeSelf && flow.selection.InteractionAllowed && !player.IsPlaying, "restart returns directly to preparation with usable controls");
+                    Expect(flow.startBattleButton.gameObject.activeSelf && !flow.pauseMenuRoot.activeSelf && flow.selection.InteractionAllowed && !player.IsPlaying, "restart returns directly to preparation with usable controls");
                     clockRevision = flow.clock.Revision; flow.restartButton.onClick.Invoke();
                     Expect(flow.clock.Revision == clockRevision, "duplicate restart harmless");
                     step++; break;
@@ -176,7 +176,7 @@ public static class MapUIFlowChecks
                     flow.startBattleButton.onClick.Invoke(); step++; break;
                 case 7:
                     if (!flow.clock.IsRunning) return;
-                    flow.pauseButton.onClick.Invoke(); flow.restartButton.onClick.Invoke();
+                    flow.TogglePause(); flow.restartButton.onClick.Invoke();
                     Expect(Time.timeScale == 1 && flow.CurrentPhase == MapUIFlow.Phase.Preparation && !flow.clock.IsPaused && flow.clock.IsRunning, "restart from pause restores time, drum and preparation");
                     flow.startBattleButton.onClick.Invoke(); step++; break;
                 case 8:
@@ -235,7 +235,7 @@ public static class MapUIFlowChecks
                     if (!CameraTransitionFinished(flow)) return;
                     transitionStart = flow.selection.WorldCamera.transform.position;
                     sawCameraMove = false;
-                    flow.pauseButton.onClick.Invoke();
+                    flow.TogglePause();
                     flow.skipLevelButton.onClick.Invoke();
                     flow.skipLevelButton.onClick.Invoke();
                     Expect(flow.CurrentLevel == 3 && flow.CurrentPhase == MapUIFlow.Phase.Transition && Time.timeScale == 1 &&
@@ -261,7 +261,7 @@ public static class MapUIFlowChecks
                     flow.skipLevelButton.onClick.Invoke();
                     Expect(flow.CurrentLevel == 4, "final level rejects direct skip calls");
                     flow.startBattleButton.onClick.Invoke();
-                    flow.pauseButton.onClick.Invoke();
+                    flow.TogglePause();
                     flow.enabled = false;
                     Expect(Time.timeScale == 1, "shutdown from pause restores global time scale");
                     Expect(!flow.clock.IsRunning && !flow.selection.InteractionAllowed && flow.spawners.All(s => !s.enabled && s.LivingCount == 0), "shutdown cancels clock, enemies and map input");
@@ -276,9 +276,9 @@ public static class MapUIFlowChecks
     {
         int level = flow.CurrentLevel;
         Expect(!flow.selection.InteractionAllowed && !flow.startBattleButton.gameObject.activeSelf &&
-            !flow.battleControlsRoot.activeSelf && !flow.resultRoot.activeSelf &&
+            !flow.pauseMenuRoot.activeSelf && !flow.resultRoot.activeSelf &&
             flow.spawners.All(s => !s.enabled && s.LivingCount == 0), "camera travel locks building, spawning and battle controls");
-        flow.StartBattle(); flow.TogglePause(); flow.RestartCurrentLevel(); flow.SkipCurrentLevel(); flow.NextLevel();
+        flow.StartBattle(); flow.TogglePause(); flow.RestartCurrentLevel(); flow.SkipCurrentLevel(); flow.NextLevel(); flow.TogglePause();
         Expect(flow.CurrentPhase == MapUIFlow.Phase.Transition && flow.CurrentLevel == level,
             "direct and duplicate actions cannot interrupt camera travel");
     }
@@ -293,7 +293,7 @@ public static class MapUIFlowChecks
         }
         Expect(sawCameraMove, "camera moves across frames before preparation");
         Expect(flow.CurrentPhase == MapUIFlow.Phase.Preparation && flow.selection.InteractionAllowed &&
-            flow.startBattleButton.gameObject.activeSelf && flow.battleControlsRoot.activeSelf &&
+            flow.startBattleButton.gameObject.activeSelf && !flow.pauseMenuRoot.activeSelf &&
             flow.spawners.All(s => !s.enabled), "camera arrival enables preparation without starting enemies");
         return true;
     }

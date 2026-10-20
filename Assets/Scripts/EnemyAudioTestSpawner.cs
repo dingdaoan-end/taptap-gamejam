@@ -46,7 +46,7 @@ namespace TapTapGameJam.Combat
         private bool warnedInvalidRoad;
         [SerializeField] private int arrivedCount;
         public int ArrivedCount => arrivedCount;
-        public event System.Action EnemyArrived;
+        public event System.Action<EnemyPathMover> EnemyArrived;
         public int LivingCount
         {
             get
@@ -190,7 +190,7 @@ namespace TapTapGameJam.Combat
             arrivedCount++;
             // Membership was removed above, so duplicate arrival notifications
             // cannot take another life from the base.
-            EnemyArrived?.Invoke();
+            EnemyArrived?.Invoke(enemy);
         }
         private void OnTransportChanged()
         {

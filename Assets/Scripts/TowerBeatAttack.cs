@@ -21,6 +21,7 @@ namespace TapTapGameJam.Combat
         [SerializeField] string attackAnimationState = "Base Layer.Tower_Bell_Attack";
         MusicClock subscribedClock;
         BellTowerMusicController bellMusic;
+        LevelThreeTowerMusicController level3Music;
         int successfulHits;
         double pendingBeat = double.PositiveInfinity;
         double lastConsumedBeat = double.NegativeInfinity;
@@ -31,6 +32,7 @@ namespace TapTapGameJam.Combat
         void Awake()
         {
             bellMusic = GetComponent<BellTowerMusicController>();
+            level3Music = GetComponent<LevelThreeTowerMusicController>();
             if (detector == null) detector = GetComponentInChildren<TowerEnemyDetector>();
         }
 
@@ -47,7 +49,8 @@ namespace TapTapGameJam.Combat
         // again at the hit. There is no damage or timer started by OnTriggerEnter.
         void LateUpdate()
         {
-            if (bellMusic != null) clock = bellMusic.clock;
+            if (level3Music != null && level3Music.IsActiveForLevel) clock = level3Music.Clock;
+            else if (bellMusic != null) clock = bellMusic.clock;
             else if (clock == null)
                 foreach (var candidate in FindObjectsOfType<MusicClock>())
                     if (candidate.gameObject.scene == gameObject.scene) { clock = candidate; break; }
@@ -61,7 +64,7 @@ namespace TapTapGameJam.Combat
             double now = AudioSettings.dspTime;
             // Bell hits share the audio reservation, including cancellation, loading,
             // pause/resume and the next-beat entry. Other towers keep their score.
-            if (bellMusic != null || double.IsPositiveInfinity(pendingBeat)) ScheduleNext(now);
+            if (bellMusic != null || (clock.SelectedLevel >= 3 && level3Music != null) || double.IsPositiveInfinity(pendingBeat)) ScheduleNext(now);
             if (double.IsPositiveInfinity(pendingBeat)) return; // empty score = rest
             double due = clock.GetDspTimeForBeat(pendingBeat);
             if (now < due) return;
@@ -124,6 +127,11 @@ namespace TapTapGameJam.Combat
         }
         void ScheduleNext(double now, bool joining = true)
         {
+            if (clock.SelectedLevel >= 3 && level3Music != null)
+            {
+                pendingBeat = level3Music.GetScheduledAttackBeat(lastConsumedBeat);
+                return;
+            }
             if (bellMusic != null)
             {
                 pendingBeat = bellMusic.GetScheduledAttackBeat(lastConsumedBeat);

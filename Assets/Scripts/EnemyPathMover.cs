@@ -10,6 +10,13 @@ namespace TapTapGameJam.Combat
         private Rigidbody2D body;
         [SerializeField] private MusicClock clock;
         [SerializeField, Min(0)] private float unitsPerBeat = 1;
+        [Tooltip("Disable for test enemies that should disappear at the goal without damaging the base.")]
+        [SerializeField] private bool damagesBaseOnArrival = true;
+        [Header("Spawn facing")]
+        [SerializeField] private SpriteRenderer sprite;
+        [Tooltip("The supplied Minion art faces left before Flip X.")]
+        [SerializeField] private bool artworkFacesRight;
+        public bool DamagesBaseOnArrival => damagesBaseOnArrival;
         private EnemyAudioTestSpawner settings;
         private double lastBeat;
         private double distanceTravelled;
@@ -34,7 +41,6 @@ namespace TapTapGameJam.Combat
             var points = new Vector2[path.Count];
             for (int i = 0; i < points.Length; i++) points[i] = path.Point(i);
             this.path = new EnemyRoutePath(origin, points);
-            var visual = GetComponent<EnemyWalkVisual>();
             body = GetComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Kinematic;
             body.simulated = true;
@@ -47,8 +53,18 @@ namespace TapTapGameJam.Combat
             distanceTravelled = EnemyBeatTiming.Distance(lastBeat, spawnBeat) * activeSpeed;
             body.position = this.path.Sample(distanceTravelled, out var direction, out _);
             MoveDirection = direction; HasArrived = false; IsInitialized = true;
-            if (visual != null && settings != null) visual.SetSpawnFacing(settings.Level);
+            if (settings != null) SetSpawnFacing(settings.Level);
         }
+
+        public void SetSpawnFacing(int level)
+        {
+            if (sprite == null) sprite = GetComponentInChildren<SpriteRenderer>();
+            if (sprite == null) return;
+            // Facing stays fixed for the level, including when the route turns.
+            bool faceRight = level == 1 || level == 4;
+            sprite.flipX = artworkFacesRight ? !faceRight : faceRight;
+        }
+
         private void FixedUpdate()
         {
             if (!isActiveAndEnabled || !IsInitialized || path == null || body == null) return;

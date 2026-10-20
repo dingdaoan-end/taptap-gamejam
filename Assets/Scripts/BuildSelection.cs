@@ -41,6 +41,16 @@ public class BuildSelection : MonoBehaviour
     }
     [SerializeField] private OptionBinding[] optionBindings = new OptionBinding[0];
     private GameObject[] unlockedPrefabs;
+    private readonly System.Collections.Generic.Dictionary<GameObject, GameObject> prefabReplacements =
+        new System.Collections.Generic.Dictionary<GameObject, GameObject>();
+    public void SetPrefabReplacement(GameObject original, GameObject replacement)
+    {
+        if (original == null) return;
+        if (replacement == null) prefabReplacements.Remove(original);
+        else prefabReplacements[original] = replacement;
+    }
+    public GameObject ResolveBuildPrefab(GameObject original) => original != null &&
+        prefabReplacements.TryGetValue(original, out var replacement) && replacement != null ? replacement : original;
     private bool interactionAllowed = true;
     private int resumeAfterFrame = -1;
     public bool InteractionAllowed => interactionAllowed && isActiveAndEnabled;
@@ -200,7 +210,7 @@ public class BuildSelection : MonoBehaviour
             obj.transform.InverseTransformPoint(selectedSite.Corner(0, 0)), obj.transform.InverseTransformPoint(selectedSite.Corner(2, 0)),
             obj.transform.InverseTransformPoint(selectedSite.Corner(2, 2)), obj.transform.InverseTransformPoint(selectedSite.Corner(0, 2)) };
         var slot = obj.AddComponent<BuildSlot>(); slot.ConfigurePlacement(placementValidator, selectedSite);
-        if (!slot.TryBuild(towerPrefab))
+        if (!slot.TryBuild(ResolveBuildPrefab(towerPrefab)))
         {
             if (Application.isPlaying) Destroy(obj); else DestroyImmediate(obj);
             return false;

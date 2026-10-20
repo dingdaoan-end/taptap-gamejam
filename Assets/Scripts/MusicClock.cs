@@ -32,6 +32,13 @@ namespace TapTapGameJam.Music
         int selectedLevel = 1;
         float SelectedBpm => Math.Max(1, selectedLevel >= 3 ? level3Bpm : bpm);
         int nextBellLoop;
+        readonly LevelThreeVariantAllocator level3Variants = new LevelThreeVariantAllocator();
+        public int SelectedLevel => selectedLevel;
+
+        public int AllocateLevel3Variant(TapTapGameJam.Combat.TowerInstrument instrument)
+        {
+            return level3Variants.Allocate(instrument);
+        }
 
         // Scene-owned build order. Audio stop/start and pause must not reset towers
         // already placed during preparation. Only clearing a level resets this order.
@@ -41,7 +48,11 @@ namespace TapTapGameJam.Music
             nextBellLoop = (nextBellLoop + 1) % BellTowerMusicController.LoopCount;
             return loop;
         }
-        public void ResetBellLoopAssignments() { nextBellLoop = 0; }
+        public void ResetBellLoopAssignments()
+        {
+            nextBellLoop = 0;
+            level3Variants.Reset();
+        }
 
         // Future tower schedulers must cancel old queued audio/attacks on this event.
         public event Action TransportChanged;
