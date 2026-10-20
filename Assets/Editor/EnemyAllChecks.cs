@@ -62,11 +62,11 @@ public static class EnemyAllChecks
                 var routes = sources.Where(s => s.Level == level).ToArray();
                 Expect(routes.Length == 3, "each test level needs three routes");
                 foreach (var source in routes)
-                    Expect(source.enemyPrefab == asset && source.UnitsPerBeat == .5f && source.spawnIntervalBeats == 1 &&
-                        source.PlannedCount == 0 && !source.HasAuthoredWave, "each route must continuously spawn Enemy_All every beat");
+                    Expect(source.enemyPrefab != asset && source.UnitsPerBeat == .5f &&
+                        source.PlannedCount > 0 && source.HasAuthoredWave, "playable routes must use finite real-enemy waves");
             }
             Directory.CreateDirectory("Artifacts/EnemyAll");
-            File.WriteAllText("Artifacts/EnemyAll/check.txt", "ENEMY_ALL_CHECK_PASS: prefab import, HP, all instruments, speed, harmless/normal arrivals, six spawner bindings.");
+            File.WriteAllText("Artifacts/EnemyAll/check.txt", "ENEMY_ALL_CHECK_PASS: test prefab retained; playable later levels use finite real-enemy waves.");
             Debug.Log("ENEMY_ALL_CHECK_PASS");
         }
         finally

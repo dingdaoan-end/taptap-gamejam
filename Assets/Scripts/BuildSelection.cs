@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+// Position UI after the fixed camera updates its viewport during window resizing.
+[DefaultExecutionOrder(100)]
 public class BuildSelection : MonoBehaviour
 {
     [SerializeField] private Camera worldCamera;
@@ -10,6 +12,7 @@ public class BuildSelection : MonoBehaviour
     [SerializeField] private GameObject[] buildOptions;
     [SerializeField] private GameObject destroyOption;
     [SerializeField] private Vector2 menuOffset;
+    [SerializeField, Min(0)] private float menuEdgePadding = 8;
     [SerializeField] private BuildPlacementValidator placementValidator;
     [SerializeField] private Text placementStatus;
     [Header("World tower capacity (shared by all instruments)")]
@@ -80,6 +83,9 @@ public class BuildSelection : MonoBehaviour
     private BuildFootprint selectedSite;
     private bool siteSelected;
     private BuildPlacementPreview preview;
+    private Vector3 authoredMenuScale;
+    private readonly Vector3[] menuCorners = new Vector3[4];
+    private readonly System.Collections.Generic.List<Graphic> menuGraphics = new System.Collections.Generic.List<Graphic>();
     public Camera WorldCamera => worldCamera;
     public BuildValidation LastValidation { get; private set; }
 
@@ -88,7 +94,11 @@ public class BuildSelection : MonoBehaviour
         if (worldCamera == null) worldCamera = Camera.main;
         if (placementValidator == null) placementValidator = GetComponent<BuildPlacementValidator>();
         if (placementValidator == null) placementValidator = gameObject.AddComponent<BuildPlacementValidator>();
-        if (buildMenu != null) buildMenu.gameObject.SetActive(false);
+        if (buildMenu != null)
+        {
+            authoredMenuScale = buildMenu.localScale;
+            buildMenu.gameObject.SetActive(false);
+        }
         SetStatus(string.Empty, false);
     }
 
@@ -144,9 +154,58 @@ public class BuildSelection : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (buildMenu == null || worldCamera == null || selected == null && !siteSelected) return;
+        if (buildMenu == null || !buildMenu.gameObject.activeInHierarchy || worldCamera == null || selected == null && !siteSelected) return;
         Vector3 center = selected != null ? selected.transform.position : selectedSite.Center;
-        buildMenu.position = worldCamera.WorldToScreenPoint(center) + (Vector3)menuOffset;
+        var canvas = buildMenu.GetComponentInParent<Canvas>()?.rootCanvas;
+        var uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        var viewport = worldCamera.pixelRect;
+        var safeArea = Screen.safeArea;
+        var area = Rect.MinMaxRect(Mathf.Max(viewport.xMin, safeArea.xMin), Mathf.Max(viewport.yMin, safeArea.yMin),
+            Mathf.Min(viewport.xMax, safeArea.xMax), Mathf.Min(viewport.yMax, safeArea.yMax));
+        if (area.width <= 0 || area.height <= 0) return;
+        float padding = Mathf.Min(menuEdgePadding, Mathf.Min(area.width, area.height) * .25f);
+        area = Rect.MinMaxRect(area.xMin + padding, area.yMin + padding, area.xMax - padding, area.yMax - padding);
+
+        // Measure active visuals, including buttons extending beyond the empty menu root.
+        buildMenu.localScale = authoredMenuScale;
+        PlaceMenuAtScreenPoint((Vector2)worldCamera.WorldToScreenPoint(center) + menuOffset, uiCamera);
+        var bounds = MenuScreenBounds(uiCamera);
+        float fit = Mathf.Min(1, area.width / Mathf.Max(1, bounds.width), area.height / Mathf.Max(1, bounds.height));
+        if (fit < 1)
+        {
+            buildMenu.localScale = authoredMenuScale * fit;
+            bounds = MenuScreenBounds(uiCamera);
+        }
+        var shift = new Vector2(
+            bounds.xMin < area.xMin ? area.xMin - bounds.xMin : bounds.xMax > area.xMax ? area.xMax - bounds.xMax : 0,
+            bounds.yMin < area.yMin ? area.yMin - bounds.yMin : bounds.yMax > area.yMax ? area.yMax - bounds.yMax : 0);
+        PlaceMenuAtScreenPoint(RectTransformUtility.WorldToScreenPoint(uiCamera, buildMenu.position) + shift, uiCamera);
+    }
+
+    private void PlaceMenuAtScreenPoint(Vector2 point, Camera uiCamera)
+    {
+        if (buildMenu.parent is RectTransform parent &&
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(parent, point, uiCamera, out var position))
+            buildMenu.position = position;
+    }
+
+    private Rect MenuScreenBounds(Camera uiCamera)
+    {
+        buildMenu.GetComponentsInChildren<Graphic>(false, menuGraphics);
+        Vector2 min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+        Vector2 max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+        foreach (var graphic in menuGraphics)
+        {
+            if (!graphic.isActiveAndEnabled) continue;
+            graphic.rectTransform.GetWorldCorners(menuCorners);
+            foreach (var corner in menuCorners)
+            {
+                var point = RectTransformUtility.WorldToScreenPoint(uiCamera, corner);
+                min = Vector2.Min(min, point); max = Vector2.Max(max, point);
+            }
+        }
+        return float.IsInfinity(min.x) ? new Rect(RectTransformUtility.WorldToScreenPoint(uiCamera, buildMenu.position), Vector2.zero)
+            : Rect.MinMaxRect(min.x, min.y, max.x, max.y);
     }
     private void SetHovered(BuildSlot next)
     {

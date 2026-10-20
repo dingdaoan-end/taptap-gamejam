@@ -63,7 +63,7 @@ static class Program
         var routes = blocks.Where(b => b.Contains("  spawnPoint:") && b.Contains("  level: 2\n"))
             .OrderBy(b => b.Contains("  route: {fileID: 1488182067}") ? 0 : 1).ToArray();
         Check(routes.Length == 2, "two level-two routes");
-        string yellow = Regex.Match(File.ReadAllText("Assets/Prefabs/Enemy_Yellow_Level2.prefab.meta"), @"guid: (\w+)").Groups[1].Value;
+        string yellow = Regex.Match(File.ReadAllText("Assets/Prefabs/Enemy_Yellow.prefab.meta"), @"guid: (\w+)").Groups[1].Value;
         string blue = "b5f6ce5d2ed72be4198b331eabf878b9";
         var events = routes.Select(b => Regex.Matches(b, @"  - beat: (\d+)\s+prefab: \{fileID: (\d+), guid: (\w+), type: 3\}")
             .Select(m => (beat: int.Parse(m.Groups[1].Value), id: long.Parse(m.Groups[2].Value), guid: m.Groups[3].Value)).ToArray()).ToArray();
@@ -83,10 +83,10 @@ static class Program
                     "sixteen-beat rest has no new enemies on road " + (road + 1));
         }
         Check(routes.All(r => r.Contains("  unitsPerBeat: 0.5\n")), "both level-two routes move half a unit per beat");
-        Check(Regex.IsMatch(File.ReadAllText("Assets/Prefabs/Enemy_Yellow_Level2.prefab"), @"propertyPath: maxHealth\s+value: 8\b"), "level-two yellow has eight HP");
+        Check(Regex.IsMatch(File.ReadAllText("Assets/Prefabs/Enemy_Yellow.prefab"), @"propertyPath: maxHealth\s+value: 8\b"), "level-two yellow has eight HP");
         Check(Regex.IsMatch(File.ReadAllText("Assets/Prefabs/Enemy_Blue.prefab"), @"propertyPath: maxHealth\s+value: 8\b"), "blue retains eight HP");
         Check(Regex.IsMatch(File.ReadAllText("Assets/Prefabs/Enemy_Yellow.prefab"), @"propertyPath: maxHealth\s+value: 8\b"), "other levels retain original yellow HP");
-        foreach (var entry in new[] { (yellow,"Yellow_Level2"),(blue,"Blue") })
+        foreach (var entry in new[] { (yellow,"Yellow"),(blue,"Blue") })
         {
             var prefab = File.ReadAllText("Assets/Prefabs/Enemy_" + entry.Item2 + ".prefab");
             long instance = long.Parse(Regex.Match(prefab, @"!u!1001 &(\d+)").Groups[1].Value);

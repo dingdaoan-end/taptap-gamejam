@@ -15,11 +15,25 @@ namespace TapTapGameJam.UI
 
         void Awake()
         {
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            // A remembered windowed setting must not restore the Windows title bar on startup.
+            Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+#endif
             Time.timeScale = 1;
             AudioListener.pause = false;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
+
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+        IEnumerator Start()
+        {
+            // Window changes apply at the end of the frame; record the applied display state.
+            yield return null;
+            yield return null;
+            Debug.Log("Display initialized: " + Screen.fullScreenMode + ", " + Screen.width + "x" + Screen.height);
+        }
+#endif
 
         public void StartGame()
         {

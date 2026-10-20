@@ -4429,15 +4429,45 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 910410010, guid: 8db4c027fef944e68de1c3b367f1ed62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
   spawnPoint: {fileID: 1016877861}
   route: {fileID: 1081551548}
   clock: {fileID: 975170001}
   level: 4
   spawnLimit: 0
-  waveSpawns: []
+  waveSpawns:
+  - beat: 1
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 3
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 7
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 9
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 13
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 33
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 35
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 39
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 41
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 45
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 65
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 67
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 71
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 73
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 77
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 1
   arrivedCount: 0
@@ -38209,15 +38239,47 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 910410010, guid: 8db4c027fef944e68de1c3b367f1ed62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   spawnPoint: {fileID: 133860435}
   route: {fileID: 513033077}
   clock: {fileID: 975170001}
   level: 4
   spawnLimit: 0
-  waveSpawns: []
+  waveSpawns:
+  - beat: 1
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 3
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 7
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 9
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 13
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 33
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 35
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 39
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 41
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 45
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 65
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 67
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 71
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 73
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 77
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 79
+    prefab: {fileID: 5155332846917188540, guid: c1ec451ce7824384cb9e9ea002b4f1c8, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 1
   arrivedCount: 0
@@ -39148,9 +39210,9 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 5748709218897176674, guid: 31ce294d9ef54c75936571033966ca27, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   spawnPoint: {fileID: 949216359}
   route: {fileID: 1488182067}
   clock: {fileID: 975170001}
@@ -39162,7 +39224,7 @@ MonoBehaviour:
   - beat: 2
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 5
-    prefab: {fileID: 5748709218897176674, guid: 31ce294d9ef54c75936571033966ca27, type: 3}
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   - beat: 9
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 10
@@ -39172,7 +39234,7 @@ MonoBehaviour:
   - beat: 34
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 37
-    prefab: {fileID: 5748709218897176674, guid: 31ce294d9ef54c75936571033966ca27, type: 3}
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   - beat: 41
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 42
@@ -45070,15 +45132,39 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 910410010, guid: 8db4c027fef944e68de1c3b367f1ed62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   spawnPoint: {fileID: 2002449977}
   route: {fileID: 195538434}
   clock: {fileID: 975170001}
   level: 3
   spawnLimit: 0
-  waveSpawns: []
+  waveSpawns:
+  - beat: 1
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 5
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 9
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 13
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 33
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 37
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 41
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 45
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 65
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 69
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 73
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 77
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 1
   arrivedCount: 0
@@ -49092,15 +49178,39 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 910410010, guid: 8db4c027fef944e68de1c3b367f1ed62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
   spawnPoint: {fileID: 6078115}
   route: {fileID: 461847061}
   clock: {fileID: 975170001}
   level: 3
   spawnLimit: 0
-  waveSpawns: []
+  waveSpawns:
+  - beat: 1
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 5
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 9
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 13
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 33
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 37
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 41
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 45
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 65
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 69
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 73
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 77
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 1
   arrivedCount: 0
@@ -56681,15 +56791,39 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 910410010, guid: 8db4c027fef944e68de1c3b367f1ed62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   spawnPoint: {fileID: 693851038}
   route: {fileID: 719432159}
   clock: {fileID: 975170001}
   level: 3
   spawnLimit: 0
-  waveSpawns: []
+  waveSpawns:
+  - beat: 1
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 5
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 9
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 13
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 33
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 37
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 41
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 45
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 65
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 69
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 73
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 77
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 1
   arrivedCount: 0
@@ -57580,6 +57714,10 @@ MonoBehaviour:
   replayLevelButton: {fileID: 561573305}
   transitionRoot: {fileID: 1248753482}
   cameraMoveDuration: 1.2
+  levelTwoViewCenter: {x: 24.5, y: 0.5}
+  levelThreeViewCenter: {x: 24.5, y: -14.5}
+  levelFourViewCenter: {x: -0.5, y: -14.5}
+  fixedLevelViewSize: {x: 25, y: 15}
   levelText: {fileID: 1110115906}
   healthText: {fileID: 876901193}
   waveText: {fileID: 1027132625}
@@ -62766,8 +62904,8 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   enemyPrefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   spawnPoint: {fileID: 949216359}
   route: {fileID: 2200000004}
@@ -62784,7 +62922,7 @@ MonoBehaviour:
   - beat: 10
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 13
-    prefab: {fileID: 5748709218897176674, guid: 31ce294d9ef54c75936571033966ca27, type: 3}
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   - beat: 33
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 34
@@ -62794,7 +62932,7 @@ MonoBehaviour:
   - beat: 42
     prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
   - beat: 45
-    prefab: {fileID: 5748709218897176674, guid: 31ce294d9ef54c75936571033966ca27, type: 3}
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 4
   arrivedCount: 0
@@ -64266,15 +64404,45 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1a2d29a68fc45c88efbcd1febf162c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 910410010, guid: 8db4c027fef944e68de1c3b367f1ed62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  enemyPrefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   spawnPoint: {fileID: 1016877861}
   route: {fileID: 2200000096}
   clock: {fileID: 975170001}
   level: 4
   spawnLimit: 0
-  waveSpawns: []
+  waveSpawns:
+  - beat: 1
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 3
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 7
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 9
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 13
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 33
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 35
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 39
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 41
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 45
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 65
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 67
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
+  - beat: 71
+    prefab: {fileID: 1504060220409577266, guid: 7e3ca74f729d9ca4da3bd28f92e9a32e, type: 3}
+  - beat: 73
+    prefab: {fileID: 4506186195593254041, guid: b5f6ce5d2ed72be4198b331eabf878b9, type: 3}
+  - beat: 77
+    prefab: {fileID: 5748709218897176674, guid: 521fc951852a0f24e91ea94e230bc2c6, type: 3}
   unitsPerBeat: 0.5
   spawnIntervalBeats: 1
   arrivedCount: 0

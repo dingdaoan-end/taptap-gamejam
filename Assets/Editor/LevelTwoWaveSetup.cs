@@ -9,7 +9,7 @@ using UnityEngine;
 
 public static class LevelTwoWaveSetup
 {
-    const string YellowPath = "Assets/Prefabs/Enemy_Yellow_Level2.prefab";
+    const string YellowPath = "Assets/Prefabs/Enemy_Yellow.prefab";
     const string BluePath = "Assets/Prefabs/Enemy_Blue.prefab";
     const int GroupBeats = 16;
     const int RestBeats = 16;
@@ -46,6 +46,7 @@ public static class LevelTwoWaveSetup
             }
             events = events.OrderBy(e => e.beat).ToList();
             Undo.RecordObject(spawner, "Configure level two mixed waves");
+            spawner.enemyPrefab = blue;
             var serialized = new SerializedObject(spawner);
             serialized.FindProperty("unitsPerBeat").floatValue = .5f;
             serialized.FindProperty("spawnLimit").intValue = 0;

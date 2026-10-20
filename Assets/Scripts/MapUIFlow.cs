@@ -33,6 +33,12 @@ namespace TapTapGameJam.UI
         public GameObject transitionRoot;
         [Header("Level camera transition")]
         [SerializeField, Min(0.1f)] float cameraMoveDuration = 1.2f;
+        [Header("Level 2-4 fixed views (world cells)")]
+        [SerializeField] Vector2 levelTwoViewCenter = new Vector2(24.5f, .5f);
+        [SerializeField] Vector2 levelThreeViewCenter = new Vector2(24.5f, -14.5f);
+        [SerializeField] Vector2 levelFourViewCenter = new Vector2(-.5f, -14.5f);
+        [FormerlySerializedAs("levelTwoViewSize")]
+        [SerializeField] Vector2 fixedLevelViewSize = new Vector2(25, 15);
         public TMP_Text levelText;
         public TMP_Text healthText;
         public TMP_Text waveText;
@@ -71,6 +77,7 @@ namespace TapTapGameJam.UI
         Vector3 cameraMoveStart, cameraMoveTarget;
         float cameraSizeStart, cameraSizeTarget;
         float cameraMoveElapsed, activeCameraMoveDuration;
+        FixedWorldCameraFrame fixedCameraFrame;
 
         bool IsPlayablePhase => CurrentPhase == Phase.Preparation || CurrentPhase == Phase.Battle;
 
@@ -415,9 +422,27 @@ namespace TapTapGameJam.UI
             // A scene without a usable camera has no movement to wait for.
             if (camera == null || !camera.orthographic || spawners.Length == 0 || spawners[0].spawnPoint == null)
             {
+                if (fixedCameraFrame != null) fixedCameraFrame.Release();
                 EnterPreparation();
                 return;
             }
+            if (fixedCameraFrame == null) fixedCameraFrame = camera.GetComponent<FixedWorldCameraFrame>();
+            if (CurrentLevel >= 2 && CurrentLevel <= 4)
+            {
+                if (fixedCameraFrame == null) fixedCameraFrame = camera.gameObject.AddComponent<FixedWorldCameraFrame>();
+                var center = CurrentLevel == 2 ? levelTwoViewCenter : CurrentLevel == 3 ? levelThreeViewCenter : levelFourViewCenter;
+                var size = new Vector2(Mathf.Max(.1f, fixedLevelViewSize.x), Mathf.Max(.1f, fixedLevelViewSize.y));
+                fixedCameraFrame.Begin(new Rect(center - size / 2, size));
+                movingCamera = camera;
+                cameraMoveStart = camera.transform.position;
+                cameraMoveTarget = new Vector3(center.x, center.y, cameraMoveStart.z);
+                cameraSizeStart = camera.orthographicSize;
+                cameraSizeTarget = size.y / 2;
+                cameraMoveElapsed = 0;
+                activeCameraMoveDuration = Mathf.Max(.1f, cameraMoveDuration);
+                return;
+            }
+            if (fixedCameraFrame != null) fixedCameraFrame.Release();
             var bounds = new Bounds(spawners[0].spawnPoint.position, Vector3.zero);
             foreach (var spawner in spawners)
             {
@@ -446,6 +471,7 @@ namespace TapTapGameJam.UI
                 if (cameraMoveElapsed < activeCameraMoveDuration) return;
                 movingCamera.transform.position = cameraMoveTarget;
                 movingCamera.orthographicSize = cameraSizeTarget;
+                if (fixedCameraFrame != null && fixedCameraFrame.IsActive) fixedCameraFrame.Complete();
             }
             movingCamera = null;
             EnterPreparation();
@@ -484,7 +510,7 @@ namespace TapTapGameJam.UI
             if (active && clock != null)
             {
                 double startBeat = EnemyBeatTiming.FirstBirth(clock.CurrentBeat, 1);
-                if (CurrentLevel == 2 && spawners.Length > 0 && spawners.All(s => s != null && s.HasAuthoredWave))
+                if (CurrentLevel >= 2 && spawners.Length > 0 && spawners.All(s => s != null && s.HasAuthoredWave))
                     waveGroupGate = new EnemyWaveGroupGate(startBeat, 16, 16,
                         (spawners.Max(s => s.LastAuthoredBeat) - 1) / 32 + 1);
                 foreach (var spawner in spawners)
@@ -494,6 +520,7 @@ namespace TapTapGameJam.UI
         }
         void OnDisable()
         {
+            if (fixedCameraFrame != null) fixedCameraFrame.Release();
             if (startBattleButton != null) startBattleButton.onClick.RemoveListener(StartBattle);
             if (restartButton != null) restartButton.onClick.RemoveListener(RestartCurrentLevel);
             if (skipLevelButton != null) skipLevelButton.onClick.RemoveListener(SkipCurrentLevel);
