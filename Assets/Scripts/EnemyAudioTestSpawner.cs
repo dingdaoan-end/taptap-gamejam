@@ -7,11 +7,31 @@ namespace TapTapGameJam.Combat
 {
     public sealed class EnemyAudioTestSpawner : MonoBehaviour
     {
+        [System.Serializable]
+        public sealed class WaveSpawn
+        {
+            [Min(1)] public int beat = 1;
+            public GameObject prefab;
+        }
         [FormerlySerializedAs("enemyTemplate")]
         public GameObject enemyPrefab;
         public Transform spawnPoint;
         public EnemyTestRoute route;
         public MusicClock clock;
+        [Tooltip("Spawn facing: levels 1 and 4 face right; levels 2 and 3 face left.")]
+        [SerializeField, Range(1, 4)] int level = 1;
+        public int Level => level;
+        [Tooltip("Total enemies per run. Zero keeps the unlimited test-spawning behaviour.")]
+        [SerializeField, Min(0)] int spawnLimit;
+        [Tooltip("Optional finite wave. Beat 1 is the shared wave start; keep entries ordered by beat.")]
+        [SerializeField] WaveSpawn[] waveSpawns = new WaveSpawn[0];
+        public bool HasAuthoredWave => waveSpawns != null && waveSpawns.Length > 0;
+        EnemyWaveSchedule waveSchedule;
+        public int LastAuthoredBeat => HasAuthoredWave ? waveSpawns[waveSpawns.Length - 1].beat : 0;
+        public bool CurrentWaveGroupComplete => waveSchedule != null && waveSchedule.CurrentGroupComplete;
+        public int SpawnedCount { get; private set; }
+        public int PlannedCount => HasAuthoredWave ? waveSpawns.Length : Mathf.Max(0, spawnLimit);
+        public bool SpawningComplete => PlannedCount > 0 && SpawnedCount >= PlannedCount;
         [Header("Live tuning (also affects enemies already spawned)")]
         [Min(0)] public float unitsPerBeat = 1;
         [Min(1)] public int spawnIntervalBeats = 4;
@@ -26,7 +46,18 @@ namespace TapTapGameJam.Combat
         private bool warnedInvalidRoad;
         [SerializeField] private int arrivedCount;
         public int ArrivedCount => arrivedCount;
-        public int LivingCount => livingEnemies.Count;
+        public event System.Action EnemyArrived;
+        public int LivingCount
+        {
+            get
+            {
+                // Lethal hits deactivate immediately; Destroy is deferred until the
+                // end of the frame. Arrival already removes its enemy explicitly.
+                livingEnemies.RemoveAll(enemy => enemy == null ||
+                    (enemy.TryGetComponent<EnemyHealth>(out var health) && health.CurrentHealth <= 0));
+                return livingEnemies.Count;
+            }
+        }
 
         private void Start()
         {
@@ -58,7 +89,10 @@ namespace TapTapGameJam.Combat
         private void Update()
         {
             if (!initialized || clock == null || !clock.IsRunning || clock.IsPaused) return;
+            livingEnemies.RemoveAll(enemy => enemy == null);
+            if (SpawningComplete) return;
             if (route == null || route.Count < 1 || enemyPrefab == null || spawnPoint == null) { enabled = false; return; }
+            if (HasAuthoredWave) { UpdateAuthoredWave(); return; }
             if (!scheduleReady)
             {
                 activeInterval = Mathf.Max(1, spawnIntervalBeats);
@@ -85,7 +119,6 @@ namespace TapTapGameJam.Combat
                 return;
             }
             warnedInvalidRoad = false;
-            livingEnemies.RemoveAll(enemy => enemy == null);
             // Skip enemies that would already have reached the end after a stall.
             double routeLength = Vector2.Distance(spawnPoint.position, route.Point(0));
             for (int i = 1; i < route.Count; i++) routeLength += Vector2.Distance(route.Point(i - 1), route.Point(i));
@@ -94,7 +127,7 @@ namespace TapTapGameJam.Combat
             if (beat - nextBirthBeat >= travelBeats)
                 nextBirthBeat += (System.Math.Floor((beat - travelBeats - nextBirthBeat) /
                     activeInterval) + 1) * activeInterval;
-            for (int count = 0; nextBirthBeat <= beat && count < 64; count++)
+            for (int count = 0; nextBirthBeat <= beat && count < 64 && !SpawningComplete; count++)
             {
                 Spawn(nextBirthBeat);
                 lastBirthBeat = nextBirthBeat;
@@ -102,20 +135,62 @@ namespace TapTapGameJam.Combat
                 nextBirthBeat += activeInterval;
             }
         }
-        private void Spawn(double birthBeat)
+        // The level controller supplies one anchor for every route before enabling them.
+        public void BeginWaveAt(double startBeat, EnemyWaveGroupGate groupGate = null)
         {
-            var livingEnemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+            if (!HasAuthoredWave) return;
+            var beats = new int[waveSpawns.Length];
+            for (int i = 0; i < beats.Length; i++)
+            {
+                var entry = waveSpawns[i];
+                if (entry == null || entry.prefab == null || entry.prefab.scene.IsValid())
+                    throw new System.InvalidOperationException(name + ": each wave entry needs a prefab asset.");
+                beats[i] = entry.beat;
+            }
+            waveSchedule = new EnemyWaveSchedule(beats, startBeat, groupGate);
+        }
+
+        void UpdateAuthoredWave()
+        {
+            if (waveSchedule == null) BeginWaveAt(EnemyBeatTiming.FirstBirth(clock.CurrentBeat, 1));
+            if (!waveSchedule.TryPeek(clock.CurrentBeat, out _, out double nextBeat) ||
+                AudioSettings.dspTime < clock.GetDspTimeForBeat(nextBeat)) return;
+            if (!route.TryPrepare(out string reason))
+            {
+                if (!warnedInvalidRoad) Debug.LogWarning("Enemy wave waiting for a valid route: " + reason, this);
+                warnedInvalidRoad = true;
+                return;
+            }
+            warnedInvalidRoad = false;
+            // Finite waves never discard overdue births: each enemy must participate
+            // in the wave's spawned/living/arrival accounting after a frame stall.
+            for (int count = 0; count < 64 && waveSchedule.TryPeek(clock.CurrentBeat, out int index, out double birth); count++)
+            {
+                SpawnPrefab(birth, waveSpawns[index].prefab);
+                waveSchedule.Advance();
+            }
+        }
+
+        private void Spawn(double birthBeat) => SpawnPrefab(birthBeat, enemyPrefab);
+
+        private void SpawnPrefab(double birthBeat, GameObject prefab)
+        {
+            var livingEnemy = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
             livingEnemy.name = "Enemy (Audio Test)";
             var mover = livingEnemy.GetComponent<EnemyPathMover>();
             if (mover == null) mover = livingEnemy.AddComponent<EnemyPathMover>();
             mover.Initialize(route, birthBeat, clock, this, spawnPoint.position);
             livingEnemy.SetActive(true);
             livingEnemies.Add(livingEnemy);
+            SpawnedCount++;
         }
         public void NotifyArrival(EnemyPathMover enemy)
         {
             if (enemy == null || !enemy.HasArrived || !livingEnemies.Remove(enemy.gameObject)) return;
             arrivedCount++;
+            // Membership was removed above, so duplicate arrival notifications
+            // cannot take another life from the base.
+            EnemyArrived?.Invoke();
         }
         private void OnTransportChanged()
         {
@@ -128,7 +203,9 @@ namespace TapTapGameJam.Combat
                 if (enemy != null) { enemy.SetActive(false); Destroy(enemy); }
             livingEnemies.Clear();
             scheduleReady = false;
+            waveSchedule = null;
             hasSpawned = false;
+            SpawnedCount = 0;
             arrivedCount = 0;
             warnedInvalidRoad = false;
         }

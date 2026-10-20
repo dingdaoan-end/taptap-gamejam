@@ -52,11 +52,6 @@ public static class EnemyMovementSetup
         var rocks = maps.FirstOrDefault(t => t.name == "Obstacle");
         var clock = UnityEngine.Object.FindObjectsOfType<MusicClock>().Single(c => c.gameObject.scene == scene);
         var existing = scene.GetRootGameObjects().FirstOrDefault(g => g.name == "Enemy Movement");
-        if (existing != null)
-        {
-            foreach (var spawner in existing.GetComponentsInChildren<EnemyAudioTestSpawner>(true)) RebuildPreview(spawner);
-            EditorSceneManager.MarkSceneDirty(scene); return;
-        }
         var remaining = EnemyRoadPathfinder.WalkableCells(roads, rocks);
         var entries = new List<Entry>();
         while (remaining.Count > 0)
@@ -77,9 +72,43 @@ public static class EnemyMovementSetup
             var source = ordered[ordered.Length - 1]; var goal = ordered[0];
             Vector2 origin = roads.GetCellCenterWorld(source);
             int region = origin.x < castle.x ? (origin.y >= castle.y ? 0 : 2) : (origin.y >= castle.y ? 1 : 3);
-            entries.Add(new Entry { source = source, goal = goal, region = region });
+            // A connected road can fork from one entrance to several base exits.
+            // Preserve every exit instead of choosing only the closest one.
+            foreach (var exit in endpoints.Length >= 2 ? ordered.Where(c => c != source) : new[] { goal })
+                entries.Add(new Entry { source = source, goal = exit, region = region });
         }
         if (entries.Count == 0) throw new InvalidOperationException("No connected road routes found.");
+        if (existing != null)
+        {
+            foreach (var entry in entries)
+            {
+                var spawners = existing.GetComponentsInChildren<EnemyAudioTestSpawner>(true);
+                var template = spawners.FirstOrDefault(s => s.spawnPoint != null &&
+                    roads.WorldToCell(s.spawnPoint.position) == entry.source);
+                // Keep manually authored entrances and all their wave/prefab settings.
+                if (template == null) continue;
+                bool present = spawners.Any(s => s.spawnPoint != null && s.route != null &&
+                    roads.WorldToCell(s.spawnPoint.position) == entry.source &&
+                    GetGoalCell(s.route, roads) == entry.goal);
+                if (present) continue;
+                var copy = UnityEngine.Object.Instantiate(template.gameObject, template.transform.parent);
+                Undo.RegisterCreatedObjectUndo(copy, "Add missing road branch");
+                copy.name = Regions[entry.region] + " entry " +
+                    (spawners.Count(s => s.transform.parent == template.transform.parent) + 1);
+                var added = copy.GetComponent<EnemyAudioTestSpawner>();
+                // Both routes deliberately share the same editable spawn marker.
+                var duplicateSpawn = added.spawnPoint;
+                added.spawnPoint = template.spawnPoint;
+                var fields = new SerializedObject(added.route);
+                fields.FindProperty("entrance").objectReferenceValue = template.spawnPoint;
+                var exit = (Transform)fields.FindProperty("goal").objectReferenceValue;
+                exit.position = roads.GetCellCenterWorld(entry.goal);
+                fields.ApplyModifiedPropertiesWithoutUndo();
+                if (duplicateSpawn != template.spawnPoint) Undo.DestroyObjectImmediate(duplicateSpawn.gameObject);
+            }
+            foreach (var spawner in existing.GetComponentsInChildren<EnemyAudioTestSpawner>(true)) RebuildPreview(spawner);
+            EditorSceneManager.MarkSceneDirty(scene); return;
+        }
         var root = new GameObject("Enemy Movement"); Undo.RegisterCreatedObjectUndo(root, "Add enemy movement routes");
         var groups = Regions.Select(n => { var g = new GameObject(n); g.transform.SetParent(root.transform, false); return g.transform; }).ToArray();
         int[] counts = new int[4]; bool enabledFirst = false;
@@ -98,6 +127,9 @@ public static class EnemyMovementSetup
             fields.FindProperty("rebuildFromRoadOnStart").boolValue = true; fields.ApplyModifiedPropertiesWithoutUndo();
             spawner.enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy.prefab");
             spawner.spawnPoint = spawn; spawner.route = route; spawner.clock = clock;
+            var spawnerFields = new SerializedObject(spawner);
+            spawnerFields.FindProperty("level").intValue = new[] { 1, 2, 4, 3 }[entry.region];
+            spawnerFields.ApplyModifiedPropertiesWithoutUndo();
             spawner.unitsPerBeat = 1; spawner.spawnIntervalBeats = 4;
             spawner.enabled = !enabledFirst && entry.region == 0;
             if (spawner.enabled) enabledFirst = true;
@@ -106,6 +138,12 @@ public static class EnemyMovementSetup
         if (!enabledFirst) root.GetComponentsInChildren<EnemyAudioTestSpawner>().First().enabled = true;
         EditorSceneManager.MarkSceneDirty(scene);
         Debug.Log("ENEMY_MOVEMENT_CONFIGURED routes=" + entries.Count + "; only the first NorthWest entry starts by default.");
+    }
+
+    static Vector3Int GetGoalCell(EnemyTestRoute route, Tilemap roads)
+    {
+        var goal = (Transform)new SerializedObject(route).FindProperty("goal").objectReferenceValue;
+        return goal != null ? roads.WorldToCell(goal.position) : new Vector3Int(int.MinValue, 0, 0);
     }
 
     static void RebuildPreview(EnemyAudioTestSpawner spawner)

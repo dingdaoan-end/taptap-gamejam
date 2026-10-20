@@ -9,11 +9,15 @@ namespace TapTapGameJam.Music
     {
         [Header("Musical grid (changes apply on restart)")]
         [SerializeField, Min(1)] float bpm = 100;
+        [Tooltip("Tempo used from level 3 onward. The BPM above is for levels 1 and 2.")]
+        [SerializeField, Min(1)] float level3Bpm = 116;
         [SerializeField, Min(1)] int beatsPerBar = 4;
         [SerializeField, Min(1)] int barsPerLoop = 8;
         [SerializeField, Min(0.1f)] float scheduleLeadSeconds = 0.2f;
         [Header("Castle drum")]
         [SerializeField] AudioSource drumSource;
+        [SerializeField] AudioClip level3DrumClip;
+        [SerializeField, Range(0, 1)] float dialogueVolumeMultiplier = 0.5f;
         [SerializeField] bool playOnStart = true;
         [SerializeField] bool pauseOnFocusLoss = true;
 
@@ -22,6 +26,22 @@ namespace TapTapGameJam.Music
         bool focusPaused;
         int activeBeatsPerBar = 4, activeBarsPerLoop = 8;
         AudioClip activeClip;
+        AudioClip initialDrumClip;
+        float normalDrumVolume;
+        bool drumInitialized;
+        int selectedLevel = 1;
+        float SelectedBpm => Math.Max(1, selectedLevel >= 3 ? level3Bpm : bpm);
+        int nextBellLoop;
+
+        // Scene-owned build order. Audio stop/start and pause must not reset towers
+        // already placed during preparation. Only clearing a level resets this order.
+        public int AllocateBellLoop()
+        {
+            int loop = nextBellLoop;
+            nextBellLoop = (nextBellLoop + 1) % BellTowerMusicController.LoopCount;
+            return loop;
+        }
+        public void ResetBellLoopAssignments() { nextBellLoop = 0; }
 
         // Future tower schedulers must cancel old queued audio/attacks on this event.
         public event Action TransportChanged;
@@ -30,6 +50,7 @@ namespace TapTapGameJam.Music
         public bool IsPaused => timeline.IsPaused;
         public bool IsPreparing => loading != null;
         public double SecondsPerBeat => timeline.SecondsPerBeat;
+        public double Bpm => IsRunning ? 60.0 / SecondsPerBeat : SelectedBpm;
         public double CurrentBeat => timeline.BeatAt(AudioSettings.dspTime);
         public int CurrentPhrase => MusicPhraseGrid.Index(CurrentBeat) + 1;
         public double BeatInPhrase => MusicPhraseGrid.Offset(CurrentBeat);
@@ -41,11 +62,50 @@ namespace TapTapGameJam.Music
 
         void Awake()
         {
-            if (drumSource == null) drumSource = GetComponent<AudioSource>();
-            if (drumSource != null) drumSource.playOnAwake = false;
+            InitializeDrum();
         }
 
-        void Start() { if (playOnStart) StartPlayback(); }
+        void InitializeDrum()
+        {
+            if (drumInitialized) return;
+            if (drumSource == null) drumSource = GetComponent<AudioSource>();
+            if (drumSource == null) return;
+            drumSource.playOnAwake = false;
+            initialDrumClip = drumSource.clip;
+            normalDrumVolume = drumSource.volume;
+            drumInitialized = true;
+        }
+
+        public void SetDialogueActive(bool active)
+        {
+            InitializeDrum();
+            if (drumSource != null)
+                drumSource.volume = normalDrumVolume * (active ? dialogueVolumeMultiplier : 1f);
+        }
+
+        // Level transitions clear the old towers before restarting the shared transport.
+        // Keep the selected clip for retries and pause/resume, including later levels.
+        public void SetLevel(int level)
+        {
+            InitializeDrum();
+            float previousBpm = SelectedBpm;
+            selectedLevel = Math.Max(1, level);
+            if (drumSource == null) return;
+            var clip = level >= 3 && level3DrumClip != null ? level3DrumClip : initialDrumClip;
+            if (clip == null || (drumSource.clip == clip && previousBpm == SelectedBpm)) return;
+            bool restart = IsRunning || IsPreparing;
+            drumSource.clip = clip;
+            if (restart) StartPlayback();
+        }
+
+        void Start() { if (playOnStart) EnsurePlayback(); }
+
+        // Phase changes keep the same drum loop and shared musical position.
+        public void EnsurePlayback()
+        {
+            if (IsPaused) ResumePlayback();
+            else if (!IsRunning && !IsPreparing) StartPlayback();
+        }
 
         [ContextMenu("Music/Start or Restart")]
         public void StartPlayback()
@@ -77,7 +137,7 @@ namespace TapTapGameJam.Music
             activeBeatsPerBar = Math.Max(1, beatsPerBar);
             activeBarsPerLoop = Math.Max(1, barsPerLoop);
             double start = AudioSettings.dspTime + ScheduleLeadSeconds;
-            timeline.Start(start, Math.Max(1, bpm));
+            timeline.Start(start, SelectedBpm);
             ScheduleDrum(start);
             NotifyTransportChanged();
             if (Math.Abs(clip.samples / (double)clip.frequency - LoopDuration) > 0.02)
@@ -103,6 +163,8 @@ namespace TapTapGameJam.Music
         [ContextMenu("Music/Pause")]
         public void PausePlayback()
         {
+            // A manual pause takes ownership from focus-loss auto-pause.
+            focusPaused = false;
             if (!IsRunning || IsPaused) return;
             timeline.Pause(AudioSettings.dspTime);
             drumSource.Stop();
@@ -131,6 +193,7 @@ namespace TapTapGameJam.Music
         }
 
         public double GetDspTimeForBeat(double absoluteBeat) => timeline.DspTimeForBeat(absoluteBeat);
+        public double GetNextBeatDspTime() => timeline.NextBeatTime(AudioSettings.dspTime);
         public double GetNextGridDspTime(int subdivisionsPerBeat = 1) =>
             timeline.NextGridTime(AudioSettings.dspTime + ScheduleLeadSeconds, subdivisionsPerBeat);
 

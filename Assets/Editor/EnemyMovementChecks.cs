@@ -93,11 +93,20 @@ public static class EnemyMovementChecks
         Invoke(mover, "FixedUpdate"); owner.NotifyArrival(mover); Expect(owner.ArrivedCount == 1, "duplicate arrival cannot be counted twice");
         Fixture(); var health = mover.GetComponent<EnemyHealth>(); health.TakeDamage(health.MaxHealth);
         Step(5.25); Expect(owner.ArrivedCount == 0 && mover.DistanceTravelled < .1, "killed enemy stops moving and cannot arrive");
-        Fixture(); var sprite = mover.GetComponentInChildren<SpriteRenderer>(); var walker = mover.GetComponent<EnemyWalkVisual>();
+        Fixture(); var sprite = mover.transform.Find("EnemyVisual").GetComponent<SpriteRenderer>(); var walker = mover.GetComponent<EnemyWalkVisual>();
         var scale = sprite.transform.localScale;
-        walker.Present(Vector2.right, .2, true); Expect(sprite.flipX, "new left-facing art flips to walk right");
-        walker.Present(Vector2.left, .2, true); Expect(!sprite.flipX, "new art turns left");
-        walker.Present(Vector2.up, .2, true); Expect(!sprite.flipX, "vertical travel retains previous horizontal facing");
+        var position = sprite.transform.localPosition;
+        var rotation = sprite.transform.localRotation;
+        for (int level = 1; level <= 4; level++)
+        {
+            walker.SetSpawnFacing(level);
+            bool expectedFlip = level == 1 || level == 4;
+            Expect(sprite.flipX == expectedFlip, "level " + level + " sets spawn facing");
+            Step(.25 + level * .25);
+            Expect(sprite.flipX == expectedFlip, "movement preserves level " + level + " spawn facing");
+            Expect(sprite.transform.localPosition == position && sprite.transform.localRotation == rotation,
+                "movement does not bob or rotate the enemy sprite");
+        }
         Expect(sprite.transform.localScale == scale, "walk presentation preserves artist scale");
     }
     static void RoadChecks()
@@ -126,7 +135,7 @@ public static class EnemyMovementChecks
         Expect(prefab.GetComponent<EnemyPathMover>() != null && prefab.GetComponent<EnemyWalkVisual>() != null && prefab.GetComponent<EnemyHealth>() != null, "real Minion prefab includes movement, presentation and combat health");
         Expect(AssetDatabase.GetAssetPath(prefab.GetComponentInChildren<SpriteRenderer>().sprite) == "Assets/Sprites/Enemy/Minion.PNG", "latest GitHub Minion art retained");
         var spawners = UnityEngine.Object.FindObjectsOfType<EnemyAudioTestSpawner>();
-        Expect(spawners.Length == 7, "all seven authored road components have editable entry routes");
+        Expect(spawners.Length == 9, "all road branches have editable entry routes, including shared entrances");
         Expect(spawners.Count(s => s.enabled) == 1 && spawners.Single(s => s.enabled).name.Contains("NorthWest"), "only upper-left entry starts by default");
         var roads = UnityEngine.Object.FindObjectsOfType<Tilemap>().Single(m => m.name == "Paths");
         var rocks = UnityEngine.Object.FindObjectsOfType<Tilemap>().Single(m => m.name == "Obstacle");

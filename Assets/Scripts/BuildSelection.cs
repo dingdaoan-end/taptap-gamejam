@@ -12,6 +12,60 @@ public class BuildSelection : MonoBehaviour
     [SerializeField] private Vector2 menuOffset;
     [SerializeField] private BuildPlacementValidator placementValidator;
     [SerializeField] private Text placementStatus;
+    [Header("World tower capacity (shared by all instruments)")]
+    [SerializeField, Min(0)] private int maxTowerCount = 4;
+    public int MaxTowerCount
+    {
+        get => Mathf.Max(0, maxTowerCount);
+        set => maxTowerCount = Mathf.Max(0, value);
+    }
+    // Count actual occupancy rather than a lifetime build total: demolition,
+    // external tower removal and level cleanup all release capacity naturally.
+    public int BuiltTowerCount
+    {
+        get
+        {
+            int count = 0;
+            foreach (var slot in FindObjectsOfType<BuildSlot>(true))
+                if (slot.gameObject.scene == gameObject.scene && slot.Occupied) count++;
+            return count;
+        }
+    }
+    public int AvailableTowerCount => Mathf.Max(0, MaxTowerCount - BuiltTowerCount);
+    public bool CanBuildMore => AvailableTowerCount > 0;
+    [System.Serializable]
+    public sealed class OptionBinding
+    {
+        public GameObject button;
+        public GameObject prefab;
+    }
+    [SerializeField] private OptionBinding[] optionBindings = new OptionBinding[0];
+    private GameObject[] unlockedPrefabs;
+    private bool interactionAllowed = true;
+    private int resumeAfterFrame = -1;
+    public bool InteractionAllowed => interactionAllowed && isActiveAndEnabled;
+    public bool IsUnlocked(GameObject prefab) => prefab != null &&
+        (unlockedPrefabs == null || System.Array.IndexOf(unlockedPrefabs, prefab) >= 0);
+
+    public void SetInteractionAllowed(bool allowed)
+    {
+        interactionAllowed = allowed;
+        resumeAfterFrame = Time.frameCount;
+        CancelBuild();
+    }
+    public void SetUnlockedPrefabs(GameObject[] prefabs)
+    {
+        unlockedPrefabs = prefabs == null ? new GameObject[0] : (GameObject[])prefabs.Clone();
+        RefreshMenu();
+    }
+    bool CanReceiveInput => InteractionAllowed && Time.frameCount > resumeAfterFrame;
+    bool OptionUnlocked(GameObject button)
+    {
+        if (unlockedPrefabs == null) return true; // Existing scenes without a flow keep their current behaviour.
+        foreach (var binding in optionBindings)
+            if (binding != null && binding.button == button) return IsUnlocked(binding.prefab);
+        return false;
+    }
     private BuildSlot hovered, selected;
     private BuildFootprint selectedSite;
     private bool siteSelected;
@@ -30,6 +84,7 @@ public class BuildSelection : MonoBehaviour
 
     private void Update()
     {
+        if (!CanReceiveInput) return;
         if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape)) { CancelBuild(); return; }
         if (siteSelected)
         {
@@ -68,6 +123,7 @@ public class BuildSelection : MonoBehaviour
 
     public bool SelectSite(BuildFootprint site)
     {
+        if (!CanReceiveInput) return false;
         CancelBuild();
         LastValidation = placementValidator.Validate(site, worldCamera);
         ShowSite(site, LastValidation);
@@ -95,15 +151,16 @@ public class BuildSelection : MonoBehaviour
     private void RefreshMenu()
     {
         bool occupied = selected != null && selected.Occupied;
+        bool hasCapacity = !siteSelected || CanBuildMore;
         if (buildOptions != null) foreach (var option in buildOptions)
         {
             if (option == null) continue;
-            option.SetActive(siteSelected && !occupied);
+            option.SetActive(InteractionAllowed && siteSelected && !occupied && OptionUnlocked(option));
             var button = option.GetComponent<Button>();
-            if (button != null) button.interactable = siteSelected && LastValidation.Allowed;
+            if (button != null) button.interactable = InteractionAllowed && siteSelected && hasCapacity && LastValidation.Allowed && OptionUnlocked(option);
         }
-        if (destroyOption != null) destroyOption.SetActive(occupied);
-        if (buildMenu != null) buildMenu.gameObject.SetActive(occupied || siteSelected && LastValidation.failure != BuildFailure.OutsideView);
+        if (destroyOption != null) destroyOption.SetActive(InteractionAllowed && occupied);
+        if (buildMenu != null) buildMenu.gameObject.SetActive(InteractionAllowed && (occupied || siteSelected && LastValidation.failure != BuildFailure.OutsideView));
     }
     private void Refresh(BuildSlot slot) { if (slot != null) slot.SetVisual(slot == hovered, slot == selected); }
     public void CancelBuild()
@@ -114,13 +171,24 @@ public class BuildSelection : MonoBehaviour
     }
     public void DestroySelectedTower()
     {
+        if (!CanReceiveInput) return;
         if (selected == null || !selected.TryDestroyTower()) return;
+        var demolished = selected;
         CancelBuild();
+        // Repeated rebuilding must not leave an ever-growing list of empty
+        // generated slots; authored map slots remain available for reuse.
+        if (demolished.GeneratedPlacement)
+        {
+            demolished.gameObject.SetActive(false);
+            if (Application.isPlaying) Destroy(demolished.gameObject); else DestroyImmediate(demolished.gameObject);
+        }
     }
     public void Build(GameObject towerPrefab) => TryBuildSelected(towerPrefab);
     public bool TryBuildSelected(GameObject towerPrefab)
     {
+        if (!CanReceiveInput || !IsUnlocked(towerPrefab)) return false;
         if (!siteSelected || towerPrefab == null || placementValidator == null) return false;
+        if (!CanBuildMore) { RefreshMenu(); return false; }
         LastValidation = placementValidator.Validate(selectedSite, worldCamera);
         if (!LastValidation.Allowed) { ShowSite(selectedSite, LastValidation); RefreshMenu(); return false; }
         var obj = new GameObject("BuildSlot " + selectedSite.anchor);

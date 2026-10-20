@@ -15,7 +15,6 @@ public static class BeatAttackSetup
             if (attack == null) attack = root.AddComponent<TowerBeatAttack>();
             var fields = new SerializedObject(attack);
             fields.FindProperty("detector").objectReferenceValue = root.GetComponentInChildren<TowerEnemyDetector>(true);
-            fields.FindProperty("firepoint").objectReferenceValue = root.transform.Find("Firepoint");
             fields.ApplyModifiedPropertiesWithoutUndo();
         });
         Configure("Assets/Prefabs/Enemy.prefab", root =>

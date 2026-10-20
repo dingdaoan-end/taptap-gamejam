@@ -11,12 +11,13 @@ public sealed class MusicClockEditor : Editor
         if (!Application.isPlaying) return;
         var clock = (MusicClock)target;
         EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Current BPM", clock.Bpm.ToString("F1"));
         EditorGUILayout.LabelField("Transport", clock.IsPreparing ? "Loading" :
             !clock.IsRunning ? "Stopped" : clock.IsPaused ? "Paused" : "Running / scheduled");
         EditorGUILayout.LabelField("Absolute beat (zero based)", clock.CurrentBeat.ToString("F3"));
         EditorGUILayout.LabelField("Loop beat (zero based)", clock.LoopBeat.ToString("F3"));
-        EditorGUILayout.LabelField("Global Phrase (1-4)", clock.CurrentPhrase.ToString());
-        EditorGUILayout.LabelField("Beat In Phrase (0-8)", clock.BeatInPhrase.ToString("F3"));
+        EditorGUILayout.LabelField("Global Segment (1-8)", clock.CurrentPhrase.ToString());
+        EditorGUILayout.LabelField("Beat In Segment (0-4)", clock.BeatInPhrase.ToString("F3"));
         EditorGUILayout.LabelField("Musical loop seconds", clock.LoopDuration.ToString("F3"));
         using (new EditorGUILayout.HorizontalScope())
         {

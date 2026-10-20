@@ -1,7 +1,7 @@
-100 BPM; four beats per segment; 2.4 seconds / 105840 frames each.
-44.1 kHz stereo 24-bit PCM. Source audio starts at beat zero.
-Exact sample cuts: no normalization, fades, resampling or added tails.
-Concatenating all eight segments reproduces original PCM, followed only by any padding.
-Bell_3 source is 18.57707483s: Bar_08 has 27471 zero frames (0.62292517s) appended.
-Individual playback may expose cut reverb tails; audition before gameplay integration.
-Bell_1, Bell_2, Bell_3 are separate variants; Bar_01..08 are ordered segments within each.
+100 BPM; 32 segments; 4 beats / 2.4 seconds / 105840 frames each.
+Source: ../Bell_16BeatSegments/, ordered by final numeric suffix.
+Actual source slice length: 16 beats.
+44.1 kHz, stereo, 24-bit PCM. Exact sample cuts; no fades, normalization, resampling or added padding.
+Every group of output slices reconstructs its source slice byte-for-byte in PCM data.
+Original slices retained, including any silence already present. No repeated segments removed.
+segments.csv records source offsets and PCM SHA-256 hashes.

@@ -2,11 +2,11 @@ using System;
 
 namespace TapTapGameJam.Music
 {
-    // Shared four-phrase arrangement, independent of individual tower activity.
+    // Shared eight-segment arrangement, independent of individual tower activity.
     public static class MusicPhraseGrid
     {
-        public const int BeatsPerPhrase = 8;
-        public const int PhraseCount = 4;
+        public const int BeatsPerPhrase = 4;
+        public const int PhraseCount = 8;
         public static int Index(double beat) => (int)(Math.Floor(Math.Max(0, beat) / BeatsPerPhrase) % PhraseCount);
         public static double Offset(double beat) => Math.Max(0, beat) % BeatsPerPhrase;
         public static double EndBeat(double beat) => (Math.Floor(Math.Max(0, beat) / BeatsPerPhrase) + 1) * BeatsPerPhrase;
@@ -62,6 +62,15 @@ namespace TapTapGameJam.Music
         {
             if (!IsRunning || IsPaused) throw new InvalidOperationException("Music is not running.");
             return OriginDspTime + beat * SecondsPerBeat;
+        }
+
+        // Immediate beat entry: no extra scheduling lead or four-beat pattern offset.
+        public double NextBeatTime(double now)
+        {
+            if (!IsRunning || IsPaused) throw new InvalidOperationException("Music is not running.");
+            // A clock scheduled in the future can still join its opening beat.
+            if (now < OriginDspTime) return OriginDspTime;
+            return DspTimeForBeat(Math.Floor(BeatAt(now)) + 1);
         }
 
         // subdivision=1: quarter-note beat; 2: eighth note; 4: sixteenth note.

@@ -59,10 +59,9 @@ public static class BeatAttackPlayChecks
             if (tower.ShotsFired >= 3)
             {
                 bool dead = firstEnemy == null || !firstEnemy.IsAlive;
-                bool beam = tower.GetComponent<TowerAttackFeedback>() != null;
-                if (!sawLivingEnemy || !sawDamage || !dead || !beam)
-                    throw new Exception("Real lifecycle did not produce spawn, damage, death and feedback.");
-                Finish(true, "real MusicTest Play: spawned enemy, three beat hits, visible feedback component and enemy death; last beat=" + tower.LastAttackBeat);
+                if (!sawLivingEnemy || !sawDamage || !dead)
+                    throw new Exception("Real lifecycle did not produce spawn, damage and death.");
+                Finish(true, "real MusicTest Play: spawned enemy, three beat hits and enemy death; last beat=" + tower.LastAttackBeat);
                 return;
             }
             if (EditorApplication.timeSinceStartup - started > 30)

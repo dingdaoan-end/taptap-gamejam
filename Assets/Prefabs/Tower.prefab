@@ -142,10 +142,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 325c8c7b24aeca94d914294a169d8382, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   clock: {fileID: 0}
   detector: {fileID: 910170001}
+  instrument: 0
   patternBeats: 4
   attackBeats:
   - 0
@@ -154,8 +155,6 @@ MonoBehaviour:
   - 3
   damage: 1
   maxLateSeconds: 0.12
-  firepoint: {fileID: 6541411809965513111}
-  attackColor: {r: 0.7, g: 1, b: 0.85, a: 1}
 --- !u!1 &3963221993310686416
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,10 +226,10 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1466453291
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.82075465, g: 0.8659907, b: 1, a: 0.29411766}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.29411766}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -405,7 +404,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1466453291
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: f64d3993d34d4410e83e766d40059c1b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

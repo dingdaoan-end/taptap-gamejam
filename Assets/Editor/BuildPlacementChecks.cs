@@ -175,11 +175,47 @@ public static class BuildPlacementChecks
             Expect(allowed > 0, "actual camera has legal free 2x2 sites in " + path + ": " + allowed);
         }
     }
+    static void CapacityChecks()
+    {
+        Fixture(); camera.orthographicSize = 10;
+        var selection = Selection();
+        Expect(selection.MaxTowerCount == 4 && selection.AvailableTowerCount == 4,
+            "world budget starts with four available towers");
+        var templates = new[] { new GameObject("Bell template"), new GameObject("Chord template"), new GameObject("Duduk template") };
+        var anchors = new[] { new Vector3Int(0, 0, 0), new Vector3Int(3, 0, 0), new Vector3Int(0, 3, 0), new Vector3Int(3, 3, 0), new Vector3Int(-3, -3, 0) };
+        var slots = anchors.Select(a => Slot(new BuildFootprint { surface = ground, anchor = a })).ToArray();
+        Expect(!slots[0].TryBuild(null) && selection.AvailableTowerCount == 4,
+            "failed construction does not consume a tower slot");
+        for (int i = 0; i < 4; i++)
+        {
+            Expect(slots[i].TryBuild(templates[i % templates.Length]), "mixed instrument build " + (i + 1));
+            Expect(selection.BuiltTowerCount == i + 1 && selection.AvailableTowerCount == 3 - i,
+                "each built tower consumes exactly one shared slot");
+        }
+        Expect(!slots[4].TryBuild(templates[0]) && !selection.CanBuildMore,
+            "direct BuildSlot calls cannot exceed the shared limit");
+        Expect(selection.SelectSite(new BuildFootprint { surface = ground, anchor = anchors[4] }),
+            "a legal site can still be inspected at capacity");
+        Expect(!selection.TryBuildSelected(templates[1]) && selection.BuiltTowerCount == 4,
+            "menu construction also rejects a fifth tower");
+        for (int repeat = 0; repeat < 8; repeat++)
+        {
+            Expect(slots[0].TryDestroyTower() && selection.AvailableTowerCount == 1,
+                "demolition immediately restores capacity");
+            Expect(!slots[0].TryDestroyTower() && selection.AvailableTowerCount == 1,
+                "repeated demolition cannot grant extra capacity");
+            Expect(slots[0].TryBuild(templates[repeat % templates.Length]) && selection.AvailableTowerCount == 0,
+                "released capacity can be reused for any instrument repeatedly");
+        }
+        foreach (var slot in slots) slot.TryDestroyTower();
+        Expect(selection.BuiltTowerCount == 0 && selection.AvailableTowerCount == 4,
+            "level cleanup restores all four slots");
+    }
     public static void RunBatch()
     {
         try
         {
-            TerrainChecks(); ViewChecks(); RangeChecks(); OccupancyChecks(); SelectionChecks(); SceneChecks();
+            TerrainChecks(); ViewChecks(); RangeChecks(); OccupancyChecks(); SelectionChecks(); CapacityChecks(); SceneChecks();
             Debug.Log("BUILD_PLACEMENT_CHECK_SUCCESS checks=" + checks);
             EditorApplication.Exit(0);
         }

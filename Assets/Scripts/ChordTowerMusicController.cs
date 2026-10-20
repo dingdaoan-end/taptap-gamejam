@@ -12,8 +12,8 @@ namespace TapTapGameJam.Music
         public MusicClock clock;
         public TowerEnemyDetector detector;
         public AudioSource audioSettings;
-        [Tooltip("Four ordered eight-beat clips (32-beat loop). Independent of map Section.")]
-        public AudioClip[] segments = new AudioClip[4];
+        [Tooltip("Eight ordered four-beat clips (32-beat loop). Shared global segment and offset.")]
+        public AudioClip[] segments = new AudioClip[MusicPhraseGrid.PhraseCount];
         public int NextSegment => clock != null ? clock.CurrentPhrase % MusicPhraseGrid.PhraseCount + 1 : 1;
         public bool IsPhrasePlaying => CurrentSegment > 0;
         public int CurrentSegment { get; private set; }
@@ -49,7 +49,9 @@ namespace TapTapGameJam.Music
 
         private void Update()
         {
-            if (clock == null) clock = FindObjectOfType<MusicClock>();
+            if (clock == null)
+                foreach (var candidate in FindObjectsOfType<MusicClock>())
+                    if (candidate.gameObject.scene == gameObject.scene) { clock = candidate; break; }
             if (clock != subscribedClock)
             {
                 if (subscribedClock != null) subscribedClock.TransportChanged -= OnTransport;
@@ -79,7 +81,7 @@ namespace TapTapGameJam.Music
                 start = current.end - now >= 0.02 ? current.end : clock.GetNextGridDspTime();
             }
             // All starts lie on whole beats. Round away DSP floating-point noise
-            // so a boundary such as beat 8 never resolves to the previous phrase.
+            // so a boundary such as beat 4 never resolves to the previous segment.
             double beat = Math.Round((start - clock.GetDspTimeForBeat(0)) / clock.SecondsPerBeat);
             int index = MusicPhraseGrid.Index(beat);
             double offsetSeconds = MusicPhraseGrid.Offset(beat) * clock.SecondsPerBeat;
@@ -87,7 +89,7 @@ namespace TapTapGameJam.Music
             var clips = segments;
             if (clips == null || clips.Length != MusicPhraseGrid.PhraseCount)
             {
-                if (!warned) { Debug.LogWarning("Assign exactly four chord phrases in global phrase order.", this); warned = true; }
+                if (!warned) { Debug.LogWarning("Assign exactly eight four-beat chord segments in global order.", this); warned = true; }
                 return;
             }
             var clip = clips[index];
@@ -98,10 +100,10 @@ namespace TapTapGameJam.Music
             }
             if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
             if (clip.loadState != AudioDataLoadState.Loaded) return;
-            double duration = 8 * clock.SecondsPerBeat;
+            double duration = MusicPhraseGrid.BeatsPerPhrase * clock.SecondsPerBeat;
             if (Math.Abs(clip.samples / (double)clip.frequency - duration) > 0.02)
             {
-                if (!warned) { Debug.LogWarning("Chord segment must match eight beats at MusicClock BPM. Playback withheld; check BPM and clips.", this); warned = true; }
+                if (!warned) { Debug.LogWarning("Chord segment must match four beats at MusicClock BPM. Playback withheld; check BPM and clips.", this); warned = true; }
                 return;
             }
             AudioSource voice = phrases.Count == 0 || phrases[0].source != voices[0] ? voices[0] : voices[1];

@@ -112,6 +112,52 @@ public static class BeatAttackChecks
         SetBeat(1.005); Tick(); Invoke(secondAttack, "LateUpdate");
         Expect(enemy.CurrentHealth == 0 && attack.ShotsFired + secondAttack.ShotsFired == 1, "two towers cannot claim the same lethal hit");
     }
+    [MenuItem("Tools/Combat/Check Chord Area Damage")]
+    public static void RunChordAreaChecks()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("Exit Play mode before running chord checks.");
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        Fixture("Tower_Chord");
+        enemy.gameObject.SetActive(false);
+        EnemyHealth Variant(string name, Vector3 position)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy_" + name + ".prefab");
+            var obj = UnityEngine.Object.Instantiate(prefab, position, Quaternion.identity);
+            var health = obj.GetComponent<EnemyHealth>();
+            Invoke(health, "Awake"); Invoke(health, "OnEnable");
+            obj.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
+            return health;
+        }
+        var blueA = Variant("Blue", Vector3.zero);
+        var blueB = Variant("Blue", Vector3.right * .1f);
+        var outside = Variant("Blue", Vector3.right * 100);
+        var red = Variant("Red", Vector3.left * .1f);
+        var yellow = Variant("Yellow", Vector3.up * .1f);
+        var boss = Variant("Boss", Vector3.down * .1f);
+        var extra = new GameObject("Extra blue collider", typeof(BoxCollider2D));
+        extra.transform.SetParent(blueA.transform, false); extra.layer = blueA.gameObject.layer;
+        SetBeat(.25); Tick();
+        Expect(blueA.CurrentHealth == 8 && blueB.CurrentHealth == 8, "AOE waits for its scheduled beat");
+        SetBeat(1.005); Tick();
+        Expect(blueA.CurrentHealth == 7 && blueB.CurrentHealth == 7, "one beat damages all blue targets once, even with duplicate colliders");
+        Expect(outside.CurrentHealth == 8 && red.CurrentHealth == 8 && yellow.CurrentHealth == 8, "AOE respects range and color immunity");
+        Expect(boss.CurrentHealth == 15, "chord AOE alone cannot damage boss");
+        int shots = attack.ShotsFired;
+        Tick(); Tick();
+        Expect(blueA.CurrentHealth == 7 && blueB.CurrentHealth == 7 && attack.ShotsFired == shots, "same beat cannot repeat area damage");
+        blueA.ReceiveHit(6, TowerInstrument.Chord, AudioSettings.dspTime);
+        SetBeat(2.005); Tick();
+        Expect(blueA.CurrentHealth == 0 && blueB.CurrentHealth == 6, "killing the first target does not skip later area targets");
+        Expect(boss.CurrentHealth == 15, "repeated chord hits still cannot unlock boss damage");
+        boss.ReceiveHit(1, TowerInstrument.Bell, AudioSettings.dspTime);
+        Expect(boss.CurrentHealth < 15, "another instrument within the existing window activates boss damage");
+        blueB.transform.position = Vector3.right * 100;
+        SetBeat(3.005); Tick();
+        Expect(blueB.CurrentHealth == 6 && outside.CurrentHealth == 8, "leaving range cancels area damage on the next beat");
+        Debug.Log("CHORD_AREA_CHECK_PASS checks=" + checks);
+    }
+
     static void PrefabsAndScenes()
     {
         foreach (string name in new[] { "Tower", "Tower_Bell", "Tower_Chord", "Tower_Duduk" })

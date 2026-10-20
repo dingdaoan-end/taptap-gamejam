@@ -15,7 +15,6 @@ namespace TapTapGameJam.Combat
         private double distanceTravelled;
         private float activeSpeed;
         private EnemyRoutePath path;
-        private EnemyWalkVisual visual;
         public bool IsInitialized { get; private set; }
         public bool HasArrived { get; private set; }
         public double DistanceTravelled => distanceTravelled;
@@ -35,7 +34,7 @@ namespace TapTapGameJam.Combat
             var points = new Vector2[path.Count];
             for (int i = 0; i < points.Length; i++) points[i] = path.Point(i);
             this.path = new EnemyRoutePath(origin, points);
-            visual = GetComponent<EnemyWalkVisual>();
+            var visual = GetComponent<EnemyWalkVisual>();
             body = GetComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Kinematic;
             body.simulated = true;
@@ -48,7 +47,7 @@ namespace TapTapGameJam.Combat
             distanceTravelled = EnemyBeatTiming.Distance(lastBeat, spawnBeat) * activeSpeed;
             body.position = this.path.Sample(distanceTravelled, out var direction, out _);
             MoveDirection = direction; HasArrived = false; IsInitialized = true;
-            if (visual != null) visual.Present(direction, distanceTravelled, activeSpeed > 0);
+            if (visual != null && settings != null) visual.SetSpawnFacing(settings.Level);
         }
         private void FixedUpdate()
         {
@@ -57,7 +56,6 @@ namespace TapTapGameJam.Combat
             double beat = clock.CurrentBeat;
             double elapsedBeats = beat - lastBeat;
             if (elapsedBeats < 0) { lastBeat = beat; return; }
-            double previousDistance = distanceTravelled;
             distanceTravelled = EnemyBeatTiming.Advance(distanceTravelled, lastBeat, beat, activeSpeed);
             lastBeat = beat;
             activeSpeed = settings != null ? settings.UnitsPerBeat : SafeOwnSpeed;
@@ -74,7 +72,6 @@ namespace TapTapGameJam.Combat
             // A DSP hitch can jump across many road segments. MovePosition has a
             // physics speed cap; recover directly instead of drifting off rhythm.
             if (elapsedBeats > .5) body.position = position; else body.MovePosition(position);
-            if (visual != null) visual.Present(direction, distanceTravelled, distanceTravelled > previousDistance + .000001);
         }
 
         private float SafeOwnSpeed => float.IsNaN(unitsPerBeat) || float.IsInfinity(unitsPerBeat) ? 1 : Mathf.Max(0, unitsPerBeat);

@@ -20,14 +20,6 @@ public class BuildSlot : MonoBehaviour
     private void Awake()
     {
         SetVisual(false, false);
-        BindTowerSection();
-    }
-
-    private void BindTowerSection()
-    {
-        if (existingTower == null) return;
-        foreach (var bell in existingTower.GetComponentsInChildren<TapTapGameJam.Music.BellTowerMusicController>(true))
-            bell.BindDeploymentSlot(transform);
     }
 
     public void SetVisual(bool hovered, bool selected)
@@ -91,6 +83,8 @@ public class BuildSlot : MonoBehaviour
         if (placementValidator == null) return false;
         if (footprint.surface == null && !placementValidator.TryFootprintAtCenter(transform.position, out footprint)) return false;
         var selection = placementValidator.GetComponent<BuildSelection>();
+        // Enforce the same world budget even when construction bypasses the menu.
+        if (selection != null && !selection.CanBuildMore) return false;
         var camera = selection != null ? selection.WorldCamera : Camera.main;
         if (!placementValidator.Validate(footprint, camera).Allowed) return false;
 
@@ -99,7 +93,6 @@ public class BuildSlot : MonoBehaviour
             footprint.Center,
             Quaternion.identity
         );
-        BindTowerSection();
 
         SetVisual(false, false);
         return true;
