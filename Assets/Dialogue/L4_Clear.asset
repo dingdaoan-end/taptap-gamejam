@@ -15,5 +15,8 @@ MonoBehaviour:
   dialogueId: L4_Clear
   lines:
   - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
-    text: "\u3010\u6700\u7EC8\u80DC\u5229\u5360\u4F4D\u3011\u4F60\u5B88\u4F4F\u4E86\u6240\u6709\u533A\u57DF\u3002\u611F\u8C22\u6E38\u73A9\uFF01"
+    text: "愿乐灵永随汝身！在众魂的见证下，我授予你渡灵祭司之名。"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
+    text: "汝与乐，圣坛与灵魂，乐土与肉身本为一物。我期待下个仪式你的乐声。（可建造乐塔总数+1）"
     portraitOverride: {fileID: 0}

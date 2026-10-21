@@ -98,13 +98,25 @@ public static class BuildPlacementChecks
         var obj = new GameObject("AttackRange", typeof(BoxCollider2D), typeof(TowerEnemyDetector));
         var range = obj.GetComponent<BoxCollider2D>(); range.isTrigger = true; range.size = new Vector2(.2f, .2f);
         obj.transform.position = new Vector3(2.05f, 1, 0);
-        Failure(BuildFailure.TowerRange, "partial range intersection blocks even when cell centers are outside");
+        Expect(validator.Validate(site, camera).Allowed, "partial attack range overlap allows building");
         obj.transform.position = new Vector3(1, 1, 0); range.size = new Vector2(.1f, .1f);
-        Failure(BuildFailure.TowerRange, "range entirely inside footprint blocks");
+        Expect(validator.Validate(site, camera).Allowed, "attack range inside footprint allows building");
         obj.transform.position = new Vector3(4, 4, 0);
         Expect(validator.Validate(site, camera).Allowed, "range outside footprint does not block");
         obj.transform.position = new Vector3(2.1f, 1, 0); range.size = new Vector2(.2f, .2f);
-        Failure(BuildFailure.TowerRange, "attack range boundary contact is conservatively rejected");
+        Expect(validator.Validate(site, camera).Allowed, "attack range boundary contact allows building");
+        obj.layer = LayerMask.NameToLayer("Building");
+        obj.transform.position = new Vector3(1, 1, 0); range.size = new Vector2(4, 4);
+        Expect(validator.Validate(site, camera).Allowed, "Building-layer range trigger is not an obstacle");
+        obj.transform.SetParent(ground.transform, true);
+        var visual = new GameObject("Range visual", typeof(SpriteRenderer)); visual.transform.SetParent(obj.transform, false);
+        var rangeSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.one * .5f, 1);
+        visual.GetComponent<SpriteRenderer>().sprite = rangeSprite;
+        Expect(validator.Validate(site, camera).Allowed, "Ground child range collider and visual do not block");
+        var body = new GameObject("Tower body", typeof(BoxCollider2D));
+        body.layer = LayerMask.NameToLayer("Building"); body.transform.position = new Vector3(1, 1, 0);
+        Failure(BuildFailure.Occupied, "physical tower body still blocks while range overlaps");
+        UnityEngine.Object.DestroyImmediate(body); UnityEngine.Object.DestroyImmediate(obj); UnityEngine.Object.DestroyImmediate(rangeSprite);
     }
     static void OccupancyChecks()
     {

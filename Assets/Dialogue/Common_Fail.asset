@@ -15,5 +15,11 @@ MonoBehaviour:
   dialogueId: Common_Fail
   lines:
   - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
-    text: "\u3010\u5931\u8D25\u5360\u4F4D\u3011\u57FA\u5730\u5DF2\u5931\u5B88\uFF0C\u672C\u6B21\u5173\u5361\u7ED3\u675F\u3002"
+    text: "无妨，不必苛责自己，我们会替你解决。"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
+    text: "是否重新开始试炼？"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: 616ffbba46844d5b8b1bd1c6430188d9, type: 2}
+    text: "是 / 否"
     portraitOverride: {fileID: 0}

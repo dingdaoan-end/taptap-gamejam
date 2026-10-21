@@ -11,19 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Map.unity
     guid: 5533293545b2215418f160d9ad9ff8f5
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MusicGarden.unity
     guid: 5adb68664b2b5d9e98e39e6a90e7b2b3
-  m_BuildProfiles: []
   m_configObjects: {}
-  m_SlimFeaturesWeixinMiniGame:
-    ACLDecompression: 0
-    AllocateOverhead: 1
-    DecompressASTC: 0
-    DecompressDXT: 0
-    DecompressETC: 1
-    FreeTypeSfntPng: 1
-    JobWorker: 2
-    LightProbe: 2
-    RootMotion: 0
-    UseStringInternPool: 2

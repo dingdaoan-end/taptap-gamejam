@@ -9,7 +9,9 @@ namespace TapTapGameJam.Combat
         [SerializeField] private EnemyTestRoute route;
         private Rigidbody2D body;
         [SerializeField] private MusicClock clock;
-        [SerializeField, Min(0)] private float unitsPerBeat = 1;
+        [SerializeField, Min(0)] private float unitsPerBeat = 0.5f;
+        [Tooltip("Use this prefab speed instead of the spawner speed (for bosses).") ]
+        [SerializeField] private bool overrideSpawnerSpeed;
         [Tooltip("Disable for test enemies that should disappear at the goal without damaging the base.")]
         [SerializeField] private bool damagesBaseOnArrival = true;
         [Header("Spawn facing")]
@@ -48,7 +50,7 @@ namespace TapTapGameJam.Combat
             body.constraints = RigidbodyConstraints2D.FreezeRotation;
             // A delayed frame joins at the correct musical position instead of
             // permanently reducing the spacing between successive enemies.
-            activeSpeed = settings != null ? settings.UnitsPerBeat : SafeOwnSpeed;
+            activeSpeed = GetUnitsPerBeat(settings);
             lastBeat = clock.CurrentBeat;
             distanceTravelled = EnemyBeatTiming.Distance(lastBeat, spawnBeat) * activeSpeed;
             body.position = this.path.Sample(distanceTravelled, out var direction, out _);
@@ -74,7 +76,7 @@ namespace TapTapGameJam.Combat
             if (elapsedBeats < 0) { lastBeat = beat; return; }
             distanceTravelled = EnemyBeatTiming.Advance(distanceTravelled, lastBeat, beat, activeSpeed);
             lastBeat = beat;
-            activeSpeed = settings != null ? settings.UnitsPerBeat : SafeOwnSpeed;
+            activeSpeed = GetUnitsPerBeat(settings);
             Vector2 position = path.Sample(distanceTravelled, out var direction, out bool arrived);
             MoveDirection = direction;
             if (arrived)
@@ -90,6 +92,9 @@ namespace TapTapGameJam.Combat
             if (elapsedBeats > .5) body.position = position; else body.MovePosition(position);
         }
 
-        private float SafeOwnSpeed => float.IsNaN(unitsPerBeat) || float.IsInfinity(unitsPerBeat) ? 1 : Mathf.Max(0, unitsPerBeat);
+        public float GetUnitsPerBeat(EnemyAudioTestSpawner owner) =>
+            !overrideSpawnerSpeed && owner != null ? owner.UnitsPerBeat : SafeOwnSpeed;
+
+        private float SafeOwnSpeed => float.IsNaN(unitsPerBeat) || float.IsInfinity(unitsPerBeat) ? 0.5f : Mathf.Max(0, unitsPerBeat);
     }
 }

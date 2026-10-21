@@ -33,7 +33,7 @@ public static class MapUIFlowBattleControlsSetup
         finally { EditorSceneManager.CloseScene(menu, true); }
         var canvas = scene.GetRootGameObjects().Single(g => g.name == "Canvas").transform;
         var flow = UnityEngine.Object.FindObjectsOfType<MapUIFlow>(true).Single(f => f.gameObject.scene == scene);
-        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Dialogue/DialogueChinese.asset");
+        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Dialogue/Nightgazer16.asset");
         Undo.RegisterFullObjectHierarchyUndo(canvas.gameObject, "Create Esc pause menu");
         Undo.RecordObject(flow, "Bind Esc pause menu");
         var root = canvas.Find("PauseMenuRoot") as RectTransform ?? canvas.Find("BattleControlsRoot") as RectTransform;

@@ -41,7 +41,7 @@ public static class BuildPlacementSetup
                 textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one;
                 textRect.offsetMin = new Vector2(10, 2); textRect.offsetMax = new Vector2(-10, -2);
                 var label = textObj.GetComponent<Text>();
-                label.font = AssetDatabase.LoadAssetAtPath<Font>("Assets/PianoDefense/Art/Fonts/NotoSansCJKsc-Regular.otf");
+                label.font = AssetDatabase.LoadAssetAtPath<Font>("Assets/Nightgazer-Bitmap-main/Nightgazer16.ttf");
                 label.fontSize = 18; label.alignment = TextAnchor.MiddleLeft;
                 label.color = new Color(.65f, 1, .72f); label.raycastTarget = false;
                 label.text = "选择同层完整 2×2 地块建造 · 右键 / Esc 取消";

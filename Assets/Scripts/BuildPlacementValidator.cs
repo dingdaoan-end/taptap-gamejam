@@ -104,10 +104,6 @@ public sealed class BuildPlacementValidator : MonoBehaviour
         PrepareProbe(f);
         try
         {
-            foreach (var detector in FindObjectsOfType<TowerEnemyDetector>())
-                if (detector.gameObject.scene == gameObject.scene)
-                    foreach (var collider in detector.GetComponents<Collider2D>())
-                        if (Intersects(collider, true)) return Fail(BuildFailure.TowerRange);
             foreach (var slot in FindObjectsOfType<BuildSlot>())
                 if (slot.gameObject.scene == gameObject.scene && slot.Occupied)
                 {
@@ -122,10 +118,10 @@ public sealed class BuildPlacementValidator : MonoBehaviour
                 foreach (var collider in ground.GetComponentsInChildren<Collider2D>())
                     if (collider.gameObject != ground.gameObject && collider.GetComponent<BuildSlot>() == null && Intersects(collider, false)) return Fail(BuildFailure.Occupied);
                 foreach (var sprite in ground.GetComponentsInChildren<SpriteRenderer>())
-                    if (sprite.enabled && Overlaps(f.Bounds, sprite.bounds)) return Fail(BuildFailure.Occupied);
+                    if (sprite.enabled && !IsAttackRange(sprite) && Overlaps(f.Bounds, sprite.bounds)) return Fail(BuildFailure.Occupied);
             }
             foreach (var obstacle in FindObjectsOfType<BuildObstacle>())
-                if (obstacle.isActiveAndEnabled && obstacle.gameObject.scene == gameObject.scene && Overlaps(f.Bounds, obstacle.WorldBounds)) return Fail(BuildFailure.Occupied);
+                if (obstacle.isActiveAndEnabled && obstacle.gameObject.scene == gameObject.scene && !IsAttackRange(obstacle) && Overlaps(f.Bounds, obstacle.WorldBounds)) return Fail(BuildFailure.Occupied);
             var filter = new ContactFilter2D { useTriggers = true };
             filter.SetLayerMask(obstacleLayers);
             probe.OverlapCollider(filter, contacts);
@@ -154,9 +150,12 @@ public sealed class BuildPlacementValidator : MonoBehaviour
         probe.points = new Vector2[] { f.Corner(0, 0), f.Corner(2, 0), f.Corner(2, 2), f.Corner(0, 2) };
         probe.enabled = true; Physics2D.SyncTransforms();
     }
+    // Range sensors and their visual children are not physical tower occupancy.
+    // Apply this to every obstacle query, including Building-layer triggers.
+    static bool IsAttackRange(Component component) => component.GetComponentInParent<TowerEnemyDetector>() != null;
     bool Intersects(Collider2D collider, bool includeTouch)
     {
-        if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy) return false;
+        if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy || IsAttackRange(collider)) return false;
         var d = Physics2D.Distance(probe, collider);
         return d.isValid && (includeTouch ? d.distance <= Epsilon : d.distance < -Epsilon);
     }

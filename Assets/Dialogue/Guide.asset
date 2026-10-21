@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Guide
   m_EditorClassIdentifier: 
   characterId: guide
-  displayName: "\u5F15\u5BFC\u8005"
-  portrait: {fileID: 21300000, guid: 58ad9dbb2ae4e0a46b72c548c7609264, type: 3}
+  displayName: "老祭司"
+  portrait: {fileID: 21300000, guid: fc427fe47be720b439b3c8a627294f60, type: 3}

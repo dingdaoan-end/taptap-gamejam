@@ -96,11 +96,11 @@ public static class MapPauseMenuChecks
                     Require(Time.timeScale == 1 && f.CurrentPhase == MapUIFlow.Phase.Preparation && !f.pauseMenuRoot.activeSelf && f.spawners.All(s => !s.enabled && s.LivingCount == 0), "menu restart resets battle and closes pause");
                     stage++; break;
                 case 4:
-                    // Result overlay must return intact after Esc.
+                    // Failure dialogue survives Esc without restoring the removed result overlay.
                     typeof(MapUIFlow).GetMethod("ShowResult", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(f, new object[] { false });
                     f.TogglePause(); Paused(f); Require(!f.resultRoot.activeSelf, "result hidden behind menu");
-                    f.TogglePause(); Require(f.resultRoot.activeSelf && f.CurrentPhase == MapUIFlow.Phase.Result, "result restored");
-                    f.RestartCurrentLevel(); f.TogglePause(); stage = 40; break;
+                    f.TogglePause(); Require(!f.resultRoot.activeSelf && f.CurrentPhase == MapUIFlow.Phase.Dialogue && f.dialogue.panel.activeSelf, "failure dialogue restored");
+                    f.TogglePause(); f.RestartCurrentLevel(); f.TogglePause(); stage = 40; break;
                 case 40:
                     Click(f.skipLevelButton);
                     Require(f.CurrentLevel == 2 && f.CurrentPhase == MapUIFlow.Phase.Transition && Time.timeScale == 1 && !f.pauseMenuRoot.activeSelf, "skip resumes time and enters transition");

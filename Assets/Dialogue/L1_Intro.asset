@@ -15,8 +15,24 @@ MonoBehaviour:
   dialogueId: L1_Intro
   lines:
   - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
-    text: "\u3010\u7B2C\u4E00\u5173\u5F00\u573A\u5360\u4F4D\u3011\u6B22\u8FCE\u6765\u5230\u8FD9\u91CC\u3002\u5148\u9009\u62E9\u4E00\u5757\u5408\u9002\u7684\u7A7A\u5730\uFF0C\u5EFA\u9020\u94C3\u94DB\u5854\u3002"
+    text: "我族与巫乐为伍，逝者灵魂必将前往乐土往生。"
     portraitOverride: {fileID: 0}
   - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
-    text: "\u51C6\u5907\u597D\u540E\u70B9\u51FB\u201C\u5F00\u59CB\u6218\u6597\u201D\u3002\u6218\u6597\u671F\u95F4\u4E5F\u53EF\u4EE5\u7EE7\u7EED\u5EFA\u9020\u548C\u62C6\u9664\u9632\u5FA1\u5854\u3002"
+    text: "凡事总有例外，困苦的灵魂徘徊迷路，在四日月圆时返回我族圣塔。圣地不堪重负，我等职责为弹奏巫乐，引渡族人灵魂返回正确道路。"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
+    text: "听好，见习祭司，今日是你历练之日。若你能独掌大局完成仪式，你将正式成为我族渡灵祭司。"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: 616ffbba46844d5b8b1bd1c6430188d9, type: 2}
+    text: "我很担心......我该怎么做？"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
+    text: "选择空地，将巫乐塔置于灵魂洄游路径上，你可以随时拆除重建。记住，第一夜你只有铃鸣塔，这是必要的试炼。"
+    portraitOverride: {fileID: 0}
+    rewardSprite: {fileID: 21300000, guid: 5373f6fd9d9174141a55c088e21cc494, type: 3}
+  - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
+    text: "准备好了吗？"
+    portraitOverride: {fileID: 0}
+  - character: {fileID: 11400000, guid: acd9776329531dc47b1a1a163a22de74, type: 2}
+    text: "很好。愿乐灵永随诸身。"
     portraitOverride: {fileID: 0}

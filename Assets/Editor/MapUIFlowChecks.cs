@@ -76,7 +76,7 @@ public static class MapUIFlowChecks
                     Expect(canvas.GetComponentsInChildren<TMP_Text>(true).All(t => !t.raycastTarget), "decorative text passes raycasts");
                     Expect(flow.levelDialogues.Length == 4 && flow.levelDialogues.All(l => l.victory.IsValid && l.defeat.IsValid), "all level placeholder resources");
                     Expect(player.content.font.HasCharacters(player.content.text), "Chinese glyphs resolve");
-                    var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Dialogue/DialogueChinese.asset");
+                    var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Dialogue/Nightgazer16.asset");
                     Expect(canvas.Find("BuildMenu").GetComponentsInChildren<TMP_Text>(true).All(t => t.font == font && t.fontSharedMaterial == font.material), "all four build menu fonts and materials unified");
                     Expect(!flow.pauseMenuRoot.activeSelf, "battle controls hidden during dialogue");
                     player.nextButton.onClick.Invoke(); player.nextButton.onClick.Invoke();
@@ -196,10 +196,14 @@ public static class MapUIFlowChecks
                         source.NotifyArrival(arriving);
                         Expect(flow.CurrentBaseHealth == remaining, "one life lost per enemy, duplicate arrival ignored");
                     }
-                    Expect(flow.CurrentPhase == MapUIFlow.Phase.Result && flow.resultRoot.activeInHierarchy &&
-                        flow.RetryButton.gameObject.activeInHierarchy && !flow.selection.InteractionAllowed &&
-                        flow.spawners.All(s => !s.enabled && s.LivingCount == 0), "defeat shows retry and stops the battle");
-                    flow.RetryButton.onClick.Invoke();
+                    Expect(flow.CurrentPhase == MapUIFlow.Phase.Dialogue && !flow.resultRoot.activeInHierarchy &&
+                        player.IsPlaying && !flow.selection.InteractionAllowed &&
+                        flow.spawners.All(s => !s.enabled && s.LivingCount == 0), "defeat opens dialogue and stops the battle");
+                    while (player.IsPlaying)
+                    {
+                        typeof(DialoguePlayer).GetField("lastAdvanceFrame", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(player, -1);
+                        player.Advance();
+                    }
                     Expect(flow.CurrentBaseHealth == 5 && flow.CurrentPhase == MapUIFlow.Phase.Preparation &&
                         !flow.resultRoot.activeSelf && flow.spawners.All(s => s.SpawnedCount == 0), "retry resets health and wave for preparation");
                     flow.startBattleButton.onClick.Invoke();
@@ -212,9 +216,8 @@ public static class MapUIFlowChecks
                         checkVictory.Invoke(flow, null);
                         Expect(flow.LevelWon == (i == 9), "only the tenth resolved enemy completes the wave");
                     }
-                    Expect(flow.CurrentPhase == MapUIFlow.Phase.Result && flow.resultRoot.activeSelf &&
-                        flow.NextLevelButton.gameObject.activeSelf && !flow.RetryButton.gameObject.activeSelf,
-                        "victory offers next level instead of retry");
+                    Expect(flow.CurrentPhase == MapUIFlow.Phase.Dialogue && !flow.resultRoot.activeSelf && player.IsPlaying,
+                        "victory immediately opens next-level dialogue");
                     flow.NextLevelButton.onClick.Invoke();
                     flow.NextLevelButton.onClick.Invoke();
                     Expect(flow.CurrentPhase == MapUIFlow.Phase.Dialogue && flow.CurrentLevel == 1 && player.IsPlaying,

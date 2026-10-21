@@ -33,9 +33,9 @@ namespace TapTapGameJam.Combat
         public int PlannedCount => HasAuthoredWave ? waveSpawns.Length : Mathf.Max(0, spawnLimit);
         public bool SpawningComplete => PlannedCount > 0 && SpawnedCount >= PlannedCount;
         [Header("Live tuning (also affects enemies already spawned)")]
-        [Min(0)] public float unitsPerBeat = 1;
+        [Min(0)] public float unitsPerBeat = 0.5f;
         [Min(1)] public int spawnIntervalBeats = 4;
-        public float UnitsPerBeat => float.IsNaN(unitsPerBeat) || float.IsInfinity(unitsPerBeat) ? 1 : Mathf.Max(0, unitsPerBeat);
+        public float UnitsPerBeat => float.IsNaN(unitsPerBeat) || float.IsInfinity(unitsPerBeat) ? 0.5f : Mathf.Max(0, unitsPerBeat);
         private readonly List<GameObject> livingEnemies = new List<GameObject>();
         private double nextBirthBeat;
         private bool scheduleReady;
@@ -123,7 +123,9 @@ namespace TapTapGameJam.Combat
             double routeLength = Vector2.Distance(spawnPoint.position, route.Point(0));
             for (int i = 1; i < route.Count; i++) routeLength += Vector2.Distance(route.Point(i - 1), route.Point(i));
             double beat = clock.CurrentBeat;
-            double travelBeats = UnitsPerBeat > 0 ? routeLength / UnitsPerBeat : double.PositiveInfinity;
+            var prefabMover = enemyPrefab.GetComponent<EnemyPathMover>();
+            float speed = prefabMover != null ? prefabMover.GetUnitsPerBeat(this) : UnitsPerBeat;
+            double travelBeats = speed > 0 ? routeLength / speed : double.PositiveInfinity;
             if (beat - nextBirthBeat >= travelBeats)
                 nextBirthBeat += (System.Math.Floor((beat - travelBeats - nextBirthBeat) /
                     activeInterval) + 1) * activeInterval;

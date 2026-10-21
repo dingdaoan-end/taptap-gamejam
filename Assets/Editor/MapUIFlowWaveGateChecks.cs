@@ -100,9 +100,11 @@ public static class MapUIFlowWaveGateChecks
             }
             if (step == 6)
             {
-                if (flow.CurrentPhase != MapUIFlow.Phase.Result) return;
+                if (flow.CurrentPhase != MapUIFlow.Phase.Dialogue) return;
                 Expect(flow.LevelWon, "Resolving both waves should win the level");
-                flow.ReplayLevelButton.onClick.Invoke();
+                Expect(!flow.resultRoot.activeSelf && flow.dialogue.IsPlaying, "Victory uses dialogue without settlement UI");
+                flow.TogglePause();
+                flow.RestartCurrentLevel();
                 Expect(flow.CurrentLevel == 2 && flow.CurrentPhase == MapUIFlow.Phase.Preparation &&
                     flow.spawners.All(s => s.SpawnedCount == 0 && s.LivingCount == 0), "Replay resets both waves");
                 flow.StartBattle();

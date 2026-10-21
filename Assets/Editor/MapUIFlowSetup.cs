@@ -32,19 +32,19 @@ public static class MapUIFlowSetup
         var selection = UnityEngine.Object.FindObjectOfType<BuildSelection>();
         var clock = UnityEngine.Object.FindObjectOfType<MusicClock>();
         if (selection == null || clock == null) throw new InvalidOperationException("Map needs its existing BuildSelection and MusicClock.");
-        var fontSource = AssetDatabase.LoadAssetAtPath<Font>("Assets/PianoDefense/Art/Fonts/NotoSansCJKsc-Regular.otf");
+        var fontSource = AssetDatabase.LoadAssetAtPath<Font>("Assets/Nightgazer-Bitmap-main/Nightgazer16.ttf");
         if (fontSource == null) throw new InvalidOperationException("Missing Chinese font source.");
 
         Undo.RegisterFullObjectHierarchyUndo(canvas.gameObject, "Configure Map UI flow");
         Directory.CreateDirectory(Folder);
         AssetDatabase.Refresh();
-        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(Folder + "/DialogueChinese.asset");
+        var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(Folder + "/Nightgazer16.asset");
         if (font == null)
         {
-            font = TMP_FontAsset.CreateFontAsset(fontSource, 36, 5, GlyphRenderMode.SDFAA, 2048, 2048, AtlasPopulationMode.Dynamic, true);
-            font.name = "DialogueChinese";
-            AssetDatabase.CreateAsset(font, Folder + "/DialogueChinese.asset");
-            foreach (var atlas in font.atlasTextures) AssetDatabase.AddObjectToAsset(atlas, font);
+            font = TMP_FontAsset.CreateFontAsset(fontSource, 16, 1, GlyphRenderMode.RASTER_HINTED, 1024, 1024, AtlasPopulationMode.Dynamic, true);
+            font.name = "Nightgazer16";
+            AssetDatabase.CreateAsset(font, Folder + "/Nightgazer16.asset");
+            foreach (var atlas in font.atlasTextures) { atlas.filterMode = FilterMode.Point; AssetDatabase.AddObjectToAsset(atlas, font); }
             AssetDatabase.AddObjectToAsset(font.material, font);
         }
         foreach (var text in canvas.GetComponentsInChildren<TMP_Text>(true))

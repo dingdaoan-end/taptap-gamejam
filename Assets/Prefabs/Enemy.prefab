@@ -308,6 +308,8 @@ MonoBehaviour:
   route: {fileID: 0}
   clock: {fileID: 0}
   unitsPerBeat: 1
+  overrideSpawnerSpeed: 0
+  damagesBaseOnArrival: 1
   sprite: {fileID: 7062997735512936627}
   artworkFacesRight: 0
 --- !u!1 &7531336491927132864

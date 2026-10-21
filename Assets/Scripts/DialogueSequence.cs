@@ -12,6 +12,10 @@ namespace TapTapGameJam.UI
             public DialogueCharacter character;
             [TextArea(2, 6)] public string text;
             public Sprite portraitOverride;
+            [Tooltip("Optional label for this line's advance button; clicking still advances the dialogue.")]
+            public string nextButtonLabel;
+            [Tooltip("Tower shown in RewardPanel for this line only. Leave empty to hide the reward.")]
+            public Sprite rewardSprite;
         }
 
         public string dialogueId;

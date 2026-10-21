@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.Serialization;
+using UnityEngine.Tilemaps;
 
 namespace TapTapGameJam.UI
 {
@@ -63,19 +64,23 @@ namespace TapTapGameJam.UI
         float timeScaleBeforePause = 1;
         bool ownsPause;
         Phase phaseBeforePause = Phase.Preparation;
-        bool dialogueVisibleBeforePause, resultVisibleBeforePause, clockPausedBeforePause, quitting;
+        bool dialogueVisibleBeforePause, clockPausedBeforePause, quitting;
         string waveTextBeforePause;
         GameObject selectionBeforePause;
         int lastSkipFrame = -1;
         Camera movingCamera;
         Vector3 cameraMoveStart, cameraMoveTarget;
-        float cameraSizeStart, cameraSizeTarget;
+        const float FixedCameraSize = 9f;
+        Bounds cameraMapBounds;
+        bool hasCameraMapBounds;
         float cameraMoveElapsed, activeCameraMoveDuration;
 
         bool IsPlayablePhase => CurrentPhase == Phase.Preparation || CurrentPhase == Phase.Battle;
 
         void Awake()
         {
+            RefreshCameraMapBounds();
+            EnforceCameraViewport();
             selection.MaxTowerCount = Mathf.Clamp(firstLevelTowerLimit, 0, MaximumTowerLimit);
             allSpawners = FindObjectsOfType<EnemyAudioTestSpawner>(true)
                 .Where(s => s.gameObject.scene == gameObject.scene).ToArray();
@@ -143,7 +148,7 @@ namespace TapTapGameJam.UI
                 spawned += spawner.SpawnedCount;
                 living += spawner.LivingCount;
             }
-            waveText.text = "已出场：" + spawned + " / " + planned + "　剩余：" + living;
+            waveText.text = "已出场：" + spawned + " / " + planned;
             if (WaveCompletionRules.HasWon(baseHealth.Current, planned, spawned, living)) ShowResult(true);
         }
         void Start()
@@ -190,9 +195,9 @@ namespace TapTapGameJam.UI
                 waveTextBeforePause = waveText.text;
                 selectionBeforePause = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
                 dialogueVisibleBeforePause = dialogue != null && dialogue.panel != null && dialogue.panel.activeSelf;
-                resultVisibleBeforePause = resultRoot != null && resultRoot.activeSelf;
+                if (resultRoot != null) resultRoot.SetActive(false);
                 if (dialogueVisibleBeforePause) dialogue.panel.SetActive(false);
-                if (resultVisibleBeforePause) resultRoot.SetActive(false);
+
                 clockPausedBeforePause = clock != null && clock.IsPaused;
                 CurrentPhase = Phase.Paused;
                 selection.SetInteractionAllowed(false);
@@ -210,7 +215,7 @@ namespace TapTapGameJam.UI
                 CurrentPhase = phaseBeforePause;
                 selection.SetInteractionAllowed(IsPlayablePhase);
                 if (dialogueVisibleBeforePause && dialogue != null && dialogue.IsPlaying) dialogue.panel.SetActive(true);
-                if (resultVisibleBeforePause && resultRoot != null) resultRoot.SetActive(true);
+
                 waveText.text = waveTextBeforePause;
             }
             RefreshBattleControls();
@@ -292,30 +297,37 @@ namespace TapTapGameJam.UI
             if (pauseMenuRoot != null) pauseMenuRoot.SetActive(false);
             startBattleButton.gameObject.SetActive(false);
             waveText.text = won ? "本关已通关" : "基地已被攻破";
-            if (RetryButton != null) RetryButton.gameObject.SetActive(!won);
-            if (NextLevelButton != null) NextLevelButton.gameObject.SetActive(won && CurrentLevel < 4);
-            if (replayLevelButton != null) replayLevelButton.gameObject.SetActive(won);
-            if (resultRoot != null)
+            if (resultRoot != null) resultRoot.SetActive(false);
+            if (won && CurrentLevel < 4)
             {
-                var title = resultRoot.transform.Find("ResultTitleText")?.GetComponent<TMP_Text>();
-                var body = resultRoot.transform.Find("ResultBodyText")?.GetComponent<TMP_Text>();
-                if (title != null) title.text = won ? "游戏胜利" : "游戏失败";
-                if (body != null) body.text = won
-                    ? "本关敌人已全部结算。\n基地剩余生命：" + baseHealth.Current + " / " + MaxBaseHealth
-                    : "基地生命已耗尽。\n调整防御，再试一次！";
-                resultRoot.transform.SetAsLastSibling();
-                resultRoot.SetActive(true);
+                NextLevel();
+                return;
             }
-            var button = won ? (CurrentLevel < 4 ? NextLevelButton : replayLevelButton) : RetryButton;
-            if (EventSystem.current != null && button != null && button.gameObject.activeInHierarchy)
-                EventSystem.current.SetSelectedGameObject(button.gameObject);
+
+            var set = levelDialogues != null && CurrentLevel <= levelDialogues.Length
+                ? levelDialogues[CurrentLevel - 1] : null;
+            var sequence = set != null ? (won ? set.victory : set.defeat) : null;
+            CurrentPhase = Phase.Dialogue;
+            if (dialogue != null && dialogue.Play(sequence, _ =>
+            {
+                CurrentPhase = Phase.Result;
+                if (!won) RestartCurrentLevel();
+                else RefreshBattleControls();
+            }, won ? (System.Action)null : TogglePause,
+                won ? null : "重新开始", keepDialogueOnDecline: !won)) return;
+
+            // Missing dialogue must still leave a usable retry/quit route.
+            CurrentPhase = Phase.Result;
+            TogglePause();
         }
 
         void RecordLevelCompletion()
         {
             // Normal victories and skips grant the same one-time progress reward.
             highestClearedLevel = Mathf.Max(highestClearedLevel, CurrentLevel);
-            selection.MaxTowerCount = Mathf.Clamp(firstLevelTowerLimit + highestClearedLevel, 0, MaximumTowerLimit);
+            // Unlock one slot per cleared level: 3, 4, 5, then 6 towers.
+            selection.MaxTowerCount =
+                Mathf.Clamp(firstLevelTowerLimit + highestClearedLevel, 0, MaximumTowerLimit);
             RefreshTowerCapacity();
         }
 
@@ -347,14 +359,14 @@ namespace TapTapGameJam.UI
             if (!isActiveAndEnabled || CurrentPhase != Phase.Result || !LevelWon || CurrentLevel >= 4) return;
             int next = CurrentLevel + 1;
             var nextSpawners = allSpawners.Where(s => s != null && s.Level == next).ToArray();
-            if (nextSpawners.Length == 0) return;
+            if (nextSpawners.Length == 0) { TogglePause(); return; }
             var victory = levelDialogues != null && CurrentLevel <= levelDialogues.Length && levelDialogues[CurrentLevel - 1] != null
                 ? levelDialogues[CurrentLevel - 1].victory : null;
             CurrentPhase = Phase.Dialogue;
-            resultRoot.SetActive(false);
-            if (dialogue != null && victory != null && victory.IsValid)
-                dialogue.Play(victory, _ => EnterNextLevel(next, nextSpawners));
-            else EnterNextLevel(next, nextSpawners);
+            if (resultRoot != null) resultRoot.SetActive(false);
+            if (dialogue == null || victory == null || !victory.IsValid ||
+                !dialogue.Play(victory, _ => EnterNextLevel(next, nextSpawners)))
+                EnterNextLevel(next, nextSpawners);
         }
 
         void EnterNextLevel(int level, EnemyAudioTestSpawner[] nextSpawners)
@@ -425,11 +437,11 @@ namespace TapTapGameJam.UI
                 if (spawner.route == null) continue;
                 for (int i = 0; i < spawner.route.Count; i++) bounds.Encapsulate((Vector3)spawner.route.Point(i));
             }
+            EnforceCameraViewport();
             movingCamera = camera;
             cameraMoveStart = camera.transform.position;
-            cameraMoveTarget = new Vector3(bounds.center.x, bounds.center.y, cameraMoveStart.z);
-            cameraSizeStart = camera.orthographicSize;
-            cameraSizeTarget = Mathf.Max(bounds.extents.y + 3, (bounds.extents.x + 3) / Mathf.Max(.1f, camera.aspect));
+            cameraMoveTarget = ClampCameraPosition(camera,
+                new Vector3(bounds.center.x, bounds.center.y, cameraMoveStart.z));
             cameraMoveElapsed = 0;
             activeCameraMoveDuration = Mathf.Max(0.1f, cameraMoveDuration);
         }
@@ -441,14 +453,65 @@ namespace TapTapGameJam.UI
                 // Unscaled time also supports skipping a level from the paused state.
                 cameraMoveElapsed += Time.unscaledDeltaTime;
                 float t = Mathf.SmoothStep(0, 1, cameraMoveElapsed / activeCameraMoveDuration);
-                movingCamera.transform.position = Vector3.Lerp(cameraMoveStart, cameraMoveTarget, t);
-                movingCamera.orthographicSize = Mathf.Lerp(cameraSizeStart, cameraSizeTarget, t);
+                movingCamera.transform.position = ClampCameraPosition(movingCamera,
+                    Vector3.Lerp(cameraMoveStart, cameraMoveTarget, t));
                 if (cameraMoveElapsed < activeCameraMoveDuration) return;
-                movingCamera.transform.position = cameraMoveTarget;
-                movingCamera.orthographicSize = cameraSizeTarget;
+                movingCamera.transform.position = ClampCameraPosition(movingCamera, cameraMoveTarget);
             }
             movingCamera = null;
             EnterPreparation();
+        }
+
+        void RefreshCameraMapBounds()
+        {
+            // Water is the rectangular background of Map, including its coastline.
+            // Use occupied cells, not renderer bounds or potentially stale cellBounds.
+            var maps = FindObjectsOfType<Tilemap>()
+                .Where(map => map.gameObject.scene == gameObject.scene).ToArray();
+            var water = maps.FirstOrDefault(map => map.name.Trim().ToLowerInvariant() == "water");
+            var boundaries = water != null ? new[] { water } : maps.Where(map =>
+                BuildPlacementValidator.GroundLevel(map) > 0 ||
+                map.name.Replace(" ", "").ToLowerInvariant() == "groundbottom").ToArray();
+            hasCameraMapBounds = false;
+            foreach (var map in boundaries)
+                foreach (var cell in map.cellBounds.allPositionsWithin)
+                {
+                    if (!map.HasTile(cell)) continue;
+                    for (int y = 0; y <= 1; y++) for (int x = 0; x <= 1; x++)
+                    {
+                        Vector3 corner = map.CellToWorld(cell + new Vector3Int(x, y, 0));
+                        if (!hasCameraMapBounds)
+                        {
+                            cameraMapBounds = new Bounds(corner, Vector3.zero);
+                            hasCameraMapBounds = true;
+                        }
+                        else cameraMapBounds.Encapsulate(corner);
+                    }
+                }
+        }
+
+        Vector3 ClampCameraPosition(Camera camera, Vector3 position)
+        {
+            if (!hasCameraMapBounds) return position;
+            float halfHeight = FixedCameraSize;
+            float halfWidth = halfHeight * Mathf.Max(.01f, camera.aspect);
+            Vector3 right = camera.transform.right, up = camera.transform.up;
+            float extentX = Mathf.Abs(right.x) * halfWidth + Mathf.Abs(up.x) * halfHeight;
+            float extentY = Mathf.Abs(right.y) * halfWidth + Mathf.Abs(up.y) * halfHeight;
+            position.x = MapCameraLimits.ClampAxis(position.x, cameraMapBounds.min.x, cameraMapBounds.max.x, extentX);
+            position.y = MapCameraLimits.ClampAxis(position.y, cameraMapBounds.min.y, cameraMapBounds.max.y, extentY);
+            return position;
+        }
+
+        void EnforceCameraViewport()
+        {
+            var camera = selection != null ? selection.WorldCamera : null;
+            if (camera == null) camera = Camera.main;
+            if (camera == null || !camera.orthographic) return;
+            camera.orthographicSize = FixedCameraSize;
+            // Re-evaluate viewport extents every frame so resizing the Game view
+            // cannot push an edge outside the map after a transition completes.
+            camera.transform.position = ClampCameraPosition(camera, camera.transform.position);
         }
 
         void RefreshBaseHealth()
@@ -459,7 +522,11 @@ namespace TapTapGameJam.UI
                     healthCells[i].enabled = i < baseHealth.Current;
         }
         // LateUpdate also observes builds/demolition triggered by UI clicks this frame.
-        void LateUpdate() { RefreshTowerCapacity(); }
+        void LateUpdate()
+        {
+            EnforceCameraViewport();
+            RefreshTowerCapacity();
+        }
         void RefreshTowerCapacity()
         {
             if (selection == null || towerCapacityIcons == null) return;
@@ -484,7 +551,7 @@ namespace TapTapGameJam.UI
             if (active && clock != null)
             {
                 double startBeat = EnemyBeatTiming.FirstBirth(clock.CurrentBeat, 1);
-                if (CurrentLevel == 2 && spawners.Length > 0 && spawners.All(s => s != null && s.HasAuthoredWave))
+                if ((CurrentLevel >= 2 && CurrentLevel <= 4) && spawners.Length > 0 && spawners.All(s => s != null && s.HasAuthoredWave))
                     waveGroupGate = new EnemyWaveGroupGate(startBeat, 16, 16,
                         (spawners.Max(s => s.LastAuthoredBeat) - 1) / 32 + 1);
                 foreach (var spawner in spawners)
@@ -515,6 +582,20 @@ namespace TapTapGameJam.UI
             OnDialoguePlayingChanged(false);
             SetSpawners(false);
             if (clock != null) clock.StopPlayback();
+        }
+    }
+}
+
+namespace TapTapGameJam.UI
+{
+    public static class MapCameraLimits
+    {
+        public static float ClampAxis(float position, float mapMin, float mapMax, float halfView)
+        {
+            float min = mapMin + halfView, max = mapMax - halfView;
+            // A viewport wider than the whole map cannot fit at fixed zoom.
+            // Center it rather than oscillating between inverted clamp bounds.
+            return min > max ? (mapMin + mapMax) * .5f : System.Math.Max(min, System.Math.Min(max, position));
         }
     }
 }
